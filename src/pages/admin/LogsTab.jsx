@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { History, CheckCircle2, AlertTriangle, Info, Clock, RefreshCw } from 'lucide-react';
+import { apiUrl } from '../../config/api';
 
 export default function LogsTab() {
   const [logs, setLogs] = useState([]);
@@ -12,7 +13,7 @@ export default function LogsTab() {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/settings/logs');
+      const res = await fetch(apiUrl('/api/settings/logs'));
       const data = await res.json();
       if (data.success) {
         setLogs(data.data);

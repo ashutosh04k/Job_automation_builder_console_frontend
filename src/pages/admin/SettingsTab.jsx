@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Server, Key, Mail, CheckCircle2, AlertCircle, Send, ShieldAlert, Clock } from 'lucide-react';
+import { apiUrl } from '../../config/api';
 
 export default function SettingsTab() {
   const [settings, setSettings] = useState({
@@ -29,7 +30,7 @@ export default function SettingsTab() {
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch('/api/settings');
+      const res = await fetch(apiUrl('/api/settings'));
       const data = await res.json();
       if (data.success && data.data) {
         setSettings(data.data);
@@ -46,7 +47,7 @@ export default function SettingsTab() {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch('/api/settings', {
+      const res = await fetch(apiUrl('/api/settings'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
@@ -71,7 +72,7 @@ export default function SettingsTab() {
     }
     setTesting(true);
     try {
-      const res = await fetch('/api/settings/test-email', {
+      const res = await fetch(apiUrl('/api/settings/test-email'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recipientEmail: testEmailRecipient })

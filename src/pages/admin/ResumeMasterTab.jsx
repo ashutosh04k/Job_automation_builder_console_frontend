@@ -18,6 +18,7 @@ import {
   Eye,
   AlertCircle
 } from 'lucide-react';
+import { apiUrl } from '../../config/api';
 
 export default function ResumeMasterTab() {
   const [resume, setResume] = useState({
@@ -56,7 +57,7 @@ export default function ResumeMasterTab() {
 
   const fetchResume = async () => {
     try {
-      const res = await fetch('/api/resume');
+      const res = await fetch(apiUrl('/api/resume'));
       const data = await res.json();
       if (data.success && data.data && data.data.fullName) {
         setResume(data.data);
@@ -68,7 +69,7 @@ export default function ResumeMasterTab() {
 
   const fetchPdfStatus = async () => {
     try {
-      const res = await fetch('/api/resume/pdf-status');
+      const res = await fetch(apiUrl('/api/resume/pdf-status'));
       const data = await res.json();
       setPdfStatus(data);
     } catch (err) {
@@ -89,7 +90,7 @@ export default function ResumeMasterTab() {
 
     setUploadingPdf(true);
     try {
-      const res = await fetch('/api/resume/upload-pdf', {
+      const res = await fetch(apiUrl('/api/resume/upload-pdf'), {
         method: 'POST',
         body: formData
       });
@@ -112,7 +113,7 @@ export default function ResumeMasterTab() {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch('/api/resume', {
+      const res = await fetch(apiUrl('/api/resume'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(resume)
@@ -155,7 +156,7 @@ export default function ResumeMasterTab() {
                 <FileCheck size={14} /> Custom PDF Active ({pdfStatus.size})
               </span>
               <a 
-                href="/api/resume/download-pdf" 
+                href={apiUrl('/api/resume/download-pdf')} 
                 target="_blank" 
                 rel="noreferrer" 
                 class="btn btn-secondary btn-sm"
