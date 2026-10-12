@@ -130,11 +130,12 @@ export default function JobTargetTab() {
     try {
       const res = await fetch(apiUrl(`/api/targets/${targetId}/trigger`), { method: 'POST' });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.outcome?.result?.success) {
         showNotification('success', `🎉 Email process complete: ${data.outcome?.result?.message || 'Email sent!'}`);
         fetchTargets(page, limit, search);
       } else {
-        showNotification('error', data.error || 'Failed to send test email.');
+        const errMsg = data.outcome?.result?.message || data.error || 'Failed to send test email.';
+        showNotification('error', `❌ ${errMsg}`);
       }
     } catch (err) {
       showNotification('error', 'Error triggering email: ' + err.message);
