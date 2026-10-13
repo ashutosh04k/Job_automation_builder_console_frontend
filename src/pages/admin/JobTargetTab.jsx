@@ -394,7 +394,7 @@ export default function JobTargetTab() {
                     <th>Cron Schedule</th>
                     <th>Status</th>
                     <th>Total Sent</th>
-                    <th style={{ textAlign: 'right' }}>Actions</th>
+                    <th style={{ textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -408,8 +408,8 @@ export default function JobTargetTab() {
                       </td>
 
                       <td>
-                        <div style={{ fontWeight: 600, color: '#38bdf8' }}>{target.targetRole}</div>
-                        <div style={{ fontSize: '12px', color: '#94a3b8' }}>{target.companyName}</div>
+                        <div style={{ fontWeight: 600, color: '#38bdf8',whiteSpace:'nowrap' }}>{target.targetRole}</div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8',whiteSpace:'nowrap' }}>{target.companyName}</div>
                       </td>
 
                       <td>
@@ -432,29 +432,30 @@ export default function JobTargetTab() {
                           background: 'rgba(255,255,255,0.06)', 
                           padding: '4px 8px', 
                           borderRadius: '4px', 
-                          color: '#38bdf8' 
+                          color: '#38bdf8',
+                          whiteSpace:'nowrap'
                         }}>
                           0 9 * * * (9 AM)
                         </span>
                       </td>
 
                       <td>
-                        <span class={`status-badge ${target.isActive ? 'badge-active' : 'badge-paused'}`}>
+                        <span class={`status-badge ${target.isActive ? 'badge-active' : 'badge-paused'}`} style={{whiteSpace:'nowrap'}}>
                           {target.isActive ? '✓ Active 9 AM' : 'Paused'}
                         </span>
                       </td>
 
                       <td>
-                        <div style={{ fontWeight: 700 }}>{target.totalSentCount || 0} times</div>
+                        <div style={{ fontWeight: 700,whiteSpace:'nowrap' }}>{target.totalSentCount || 0} times</div>
                         {target.lastSentAt && (
-                          <div style={{ fontSize: '11px', color: '#64748b' }}>
+                          <div style={{ fontSize: '11px', color: '#64748b',whiteSpace:'nowrap' }}>
                             Last: {new Date(target.lastSentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         )}
                       </td>
 
                       <td style={{ textAlign: 'right' }}>
-                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end',whiteSpace:'nowrap' }}>
                           <button
                             class="btn btn-primary btn-sm"
                             onClick={() => handleTriggerNow(target._id, target.email)}
