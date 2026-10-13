@@ -5,7 +5,7 @@ import JobTargetTab from './pages/admin/JobTargetTab';
 import ResumeMasterTab from './pages/admin/ResumeMasterTab';
 import LogsTab from './pages/admin/LogsTab';
 import SettingsTab from './pages/admin/SettingsTab';
-import { Send, FileText, History, Settings, Globe, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
+import { Send, FileText, History, Settings, Globe } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('targets');
@@ -54,22 +54,9 @@ export default function App() {
       {/* Main Content Area */}
       <main className="main-content">
         <header className="top-bar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            {isCollapsed && (
-              <button
-                type="button"
-                className="topbar-toggle-btn"
-                onClick={toggleSidebar}
-                title="Expand sidebar"
-                aria-label="Expand sidebar"
-              >
-                <PanelLeftOpen size={18} />
-              </button>
-            )}
-            <div>
-              <h1 className="page-title">{title}</h1>
-              <p className="page-desc">{desc}</p>
-            </div>
+          <div>
+            <h1 className="page-title">{title}</h1>
+            <p className="page-desc">{desc}</p>
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>

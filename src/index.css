@@ -97,8 +97,11 @@ body {
 }
 
 .sidebar.collapsed .brand-header {
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  padding: 0 0 20px 0;
+  padding: 0 0 16px 0;
+  gap: 12px;
 }
 
 .brand-header-left {
@@ -144,7 +147,7 @@ body {
   text-transform: uppercase;
 }
 
-/* Sidebar Toggle Buttons */
+/* Sidebar Toggle Button */
 .sidebar-toggle-btn {
   width: 30px;
   height: 30px;
@@ -168,29 +171,8 @@ body {
 }
 
 .sidebar.collapsed .sidebar-toggle-btn {
-  margin-top: 10px;
-  width: 34px;
-  height: 34px;
-}
-
-.topbar-toggle-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.topbar-toggle-btn:hover {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: var(--border-highlight);
-  color: var(--accent-primary);
+  width: 32px;
+  height: 32px;
 }
 
 .nav-menu {
