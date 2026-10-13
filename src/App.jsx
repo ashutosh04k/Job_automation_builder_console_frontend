@@ -1,14 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import PublicWebsite from './pages/PublicWebsite';
 import JobTargetTab from './pages/admin/JobTargetTab';
 import ResumeMasterTab from './pages/admin/ResumeMasterTab';
 import LogsTab from './pages/admin/LogsTab';
 import SettingsTab from './pages/admin/SettingsTab';
-import { Send, FileText, History, Settings, Globe } from 'lucide-react';
+import { Send, FileText, History, Settings, Globe, PanelLeftOpen, PanelLeftClose } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('targets');
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('sidebar_collapsed');
+    return saved === 'true';
+  });
+
+  const toggleSidebar = () => {
+    setIsCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('sidebar_collapsed', String(next));
+      return next;
+    });
+  };
 
   const getPageTitle = () => {
     switch (activeTab) {
@@ -30,21 +42,39 @@ export default function App() {
   const { title, desc } = getPageTitle();
 
   return (
-    <div class="app-container">
+    <div className="app-container">
       {/* Navigation Sidebar */}
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        isCollapsed={isCollapsed} 
+        setIsCollapsed={toggleSidebar} 
+      />
 
       {/* Main Content Area */}
-      <main class="main-content">
-        <header class="top-bar">
-          <div>
-            <h1 class="page-title">{title}</h1>
-            <p class="page-desc">{desc}</p>
+      <main className="main-content">
+        <header className="top-bar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {isCollapsed && (
+              <button
+                type="button"
+                className="topbar-toggle-btn"
+                onClick={toggleSidebar}
+                title="Expand sidebar"
+                aria-label="Expand sidebar"
+              >
+                <PanelLeftOpen size={18} />
+              </button>
+            )}
+            <div>
+              <h1 className="page-title">{title}</h1>
+              <p className="page-desc">{desc}</p>
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
             <button
-              class={`btn ${activeTab === 'website' ? 'btn-secondary' : 'btn-primary'} btn-sm`}
+              className={`btn ${activeTab === 'website' ? 'btn-secondary' : 'btn-primary'} btn-sm`}
               onClick={() => setActiveTab(activeTab === 'website' ? 'targets' : 'website')}
             >
               {activeTab === 'website' ? (
@@ -56,7 +86,7 @@ export default function App() {
           </div>
         </header>
 
-        <div class="page-body">
+        <div className="page-body">
           {activeTab === 'website' && <PublicWebsite onGoToAdmin={() => setActiveTab('targets')} />}
           {activeTab === 'targets' && <JobTargetTab />}
           {activeTab === 'master' && <ResumeMasterTab />}

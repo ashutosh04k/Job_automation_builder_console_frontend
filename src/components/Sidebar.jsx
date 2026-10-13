@@ -6,10 +6,14 @@ import {
   History, 
   Settings, 
   Zap, 
-  Clock 
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 
-export default function Sidebar({ activeTab, setActiveTab }) {
+export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCollapsed }) {
   const menuItems = [
     { id: 'website', label: 'Public Website', icon: Globe },
     { id: 'targets', label: 'Job Target Automation', icon: Send, badge: 'Core' },
@@ -19,40 +23,52 @@ export default function Sidebar({ activeTab, setActiveTab }) {
   ];
 
   return (
-    <aside class="sidebar">
+    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div>
-        <div class="brand-header">
-          <div class="brand-icon">
-            <Zap size={22} />
+        {/* Brand Header with Close/Expand Button */}
+        <div className="brand-header">
+          <div className="brand-header-left">
+            <div className="brand-icon" title="AutoResume Platform">
+              <Zap size={20} />
+            </div>
+            {!isCollapsed && (
+              <div className="brand-text">
+                <div className="brand-title">AutoResume</div>
+                <div className="brand-subtitle">Daily 9 AM Cron</div>
+              </div>
+            )}
           </div>
-          <div>
-            <div class="brand-title">AutoResume</div>
-            <div class="brand-subtitle">Daily 9 AM Cron Engine</div>
-          </div>
+
+          <button
+            type="button"
+            className="sidebar-toggle-btn"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button>
         </div>
 
-        <nav class="nav-menu">
+        {/* Navigation Menu */}
+        <nav className="nav-menu">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (
               <button
                 key={item.id}
-                class={`nav-item ${isActive ? 'active' : ''}`}
+                type="button"
+                className={`nav-item ${isActive ? 'active' : ''} ${isCollapsed ? 'item-collapsed' : ''}`}
                 onClick={() => setActiveTab(item.id)}
+                title={isCollapsed ? item.label : undefined}
               >
-                <Icon size={18} />
-                <span>{item.label}</span>
-                {item.badge && (
-                  <span style={{ 
-                    marginLeft: 'auto', 
-                    fontSize: '10px', 
-                    background: 'rgba(56, 189, 248, 0.2)', 
-                    color: '#38bdf8', 
-                    padding: '2px 6px', 
-                    borderRadius: '10px', 
-                    fontWeight: 700 
-                  }}>
+                <div className="nav-item-icon">
+                  <Icon size={18} />
+                </div>
+                {!isCollapsed && <span className="nav-item-label">{item.label}</span>}
+                {!isCollapsed && item.badge && (
+                  <span className="nav-badge">
                     {item.badge}
                   </span>
                 )}
@@ -62,16 +78,27 @@ export default function Sidebar({ activeTab, setActiveTab }) {
         </nav>
       </div>
 
-      <div class="sidebar-footer">
-        <div class="cron-badge-card">
-          <div class="pulse-dot"></div>
-          <div>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Clock size={12} color="#38bdf8" /> 9:00 AM Cron Active
-            </div>
-            <div style={{ fontSize: '11px', color: '#64748b' }}>Every Morning Auto Dispatch</div>
+      {/* Footer Info / Cron Status */}
+      <div className="sidebar-footer">
+        {isCollapsed ? (
+          <div 
+            className="cron-badge-compact" 
+            title="9:00 AM Daily Cron Active (Scheduled Auto Dispatch)"
+          >
+            <div className="pulse-dot"></div>
+            <Clock size={14} color="#38bdf8" />
           </div>
-        </div>
+        ) : (
+          <div className="cron-badge-card">
+            <div className="pulse-dot"></div>
+            <div>
+              <div style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Clock size={12} color="#38bdf8" /> 9:00 AM Cron Active
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748b' }}>Every Morning Auto Dispatch</div>
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );
