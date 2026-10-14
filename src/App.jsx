@@ -7,6 +7,7 @@ import EmailTemplateTab from './pages/admin/EmailTemplateTab';
 import AutoFillManagerTab from './pages/admin/AutoFillManagerTab';
 import LogsTab from './pages/admin/LogsTab';
 import SettingsTab from './pages/admin/SettingsTab';
+import CustomResumeTab from './pages/admin/CustomResumeTab';
 import AuthModal from './components/AuthModal';
 import { useAuth } from './context/AuthContext';
 import { Send, FileText, History, Settings, Globe, LogOut, UserCheck } from 'lucide-react';
@@ -74,6 +75,11 @@ export default function App() {
         return { 
           title: `Job Target Automation (${user?.name}'s Workspace)`, 
           desc: 'Input Email & Job Description to store targets with daily 9 AM Cron dispatch' 
+        };
+      case 'custom-resume':
+        return { 
+          title: `ATS Resume Builder & Tailor (${user?.name})`, 
+          desc: 'Input target company, role, and job description to instantly compile a tailored ATS PDF resume' 
         };
       case 'template':
         return { 
@@ -169,6 +175,7 @@ export default function App() {
             />
           )}
           {activeTab === 'targets' && <JobTargetTab key={user?.id} />}
+          {activeTab === 'custom-resume' && <CustomResumeTab key={user?.id} />}
           {activeTab === 'template' && <EmailTemplateTab key={user?.id} />}
           {activeTab === 'master' && <ResumeMasterTab key={user?.id} />}
           {activeTab === 'autofill' && <AutoFillManagerTab key={user?.id} />}

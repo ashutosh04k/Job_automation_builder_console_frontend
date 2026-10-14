@@ -23,6 +23,7 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
   const menuItems = [
     { id: 'website', label: 'Public Website', icon: Globe },
     { id: 'targets', label: 'Job Target Automation', icon: Send, badge: 'Core' },
+    { id: 'custom-resume', label: 'ATS Resume Builder', icon: Sparkles, badge: 'Tailor' },
     { id: 'template', label: 'Email Pitch & Message', icon: Mail, badge: 'Pitch' },
     { id: 'master', label: 'Master Resume', icon: FileText },
     { id: 'autofill', label: 'AutoFill Q&A Rules', icon: Sparkles, badge: 'Extension' },
