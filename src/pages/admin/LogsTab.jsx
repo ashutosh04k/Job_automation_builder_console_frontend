@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { History, CheckCircle2, AlertTriangle, Info, Clock, RefreshCw } from 'lucide-react';
+import { History, CheckCircle2, AlertTriangle, Info, Clock, RefreshCw, Eye, ExternalLink } from 'lucide-react';
 import { apiUrl, authFetch } from '../../config/api';
 
 export default function LogsTab() {
@@ -86,21 +86,34 @@ export default function LogsTab() {
                         fontSize: '11px', 
                         padding: '3px 8px', 
                         borderRadius: '4px', 
-                        background: log.triggeredBy === 'cron' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-                        color: log.triggeredBy === 'cron' ? '#38bdf8' : '#cbd5e1',
-                        whiteSpace:'nowrap'
+                        background: log.triggeredBy === 'cron' ? 'rgba(56, 189, 248, 0.15)' : 
+                                    log.triggeredBy === 'recruiter' ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.08)',
+                        color: log.triggeredBy === 'cron' ? '#38bdf8' : 
+                               log.triggeredBy === 'recruiter' ? '#4ade80' : '#cbd5e1',
+                        whiteSpace:'nowrap',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
                       }}>
-                        {log.triggeredBy === 'cron' ? '⏰ 9:00 AM Cron' : '⚡ Manual Test'}
+                        {log.triggeredBy === 'cron' ? '⏰ 9:00 AM Cron' : 
+                         log.triggeredBy === 'recruiter' ? <><Eye size={12} /> Recruiter Activity</> : '⚡ Manual Test'}
                       </span>
                     </td>
 
                     <td style={{whiteSpace:'nowrap'}}>
                       <span class={`status-badge ${
                         log.status === 'success' ? 'badge-active' :
-                        log.status === 'simulated' ? 'badge-simulated' : 'badge-paused'
-                      }`}>
+                        log.status === 'simulated' ? 'badge-simulated' :
+                        log.status === 'opened' ? 'badge-active' :
+                        log.status === 'clicked' ? 'badge-active' : 'badge-paused'
+                      }`} style={
+                        log.status === 'opened' ? { background: 'rgba(34, 197, 94, 0.2)', color: '#4ade80', borderColor: 'rgba(34, 197, 94, 0.4)' } :
+                        log.status === 'clicked' ? { background: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.4)' } : {}
+                      }>
                         {log.status === 'success' ? '✓ Live Sent' :
-                         log.status === 'simulated' ? 'ℹ Simulated' : '✕ Failed'}
+                         log.status === 'simulated' ? 'ℹ Simulated' :
+                         log.status === 'opened' ? '👁 Recruiter Opened' :
+                         log.status === 'clicked' ? '🔗 Recruiter Clicked' : '✕ Failed'}
                       </span>
                     </td>
 

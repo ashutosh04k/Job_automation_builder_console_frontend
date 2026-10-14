@@ -394,6 +394,7 @@ export default function JobTargetTab() {
                     <th>Cron Schedule</th>
                     <th>Status</th>
                     <th>Total Sent</th>
+                    <th>Email Opens</th>
                     <th style={{ textAlign: 'center' }}>Actions</th>
                   </tr>
                 </thead>
@@ -450,6 +451,54 @@ export default function JobTargetTab() {
                         {target.lastSentAt && (
                           <div style={{ fontSize: '11px', color: '#64748b',whiteSpace:'nowrap' }}>
                             Last: {new Date(target.lastSentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        )}
+                      </td>
+
+                      <td>
+                        {target.isOpened ? (
+                          <div>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              background: 'rgba(34, 197, 94, 0.15)',
+                              color: '#4ade80',
+                              border: '1px solid rgba(34, 197, 94, 0.3)',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              whiteSpace: 'nowrap'
+                            }}>
+                              <Eye size={12} /> Opened ({target.openCount || 1}x)
+                            </span>
+                            {target.lastOpenedAt && (
+                              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px', whiteSpace: 'nowrap' }}>
+                                {new Date(target.lastOpenedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {new Date(target.lastOpenedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                              </div>
+                            )}
+                            {target.clickCount > 0 && (
+                              <div style={{ fontSize: '10px', color: '#38bdf8', marginTop: '2px', whiteSpace: 'nowrap' }}>
+                                🔗 {target.clickCount} link click{target.clickCount > 1 ? 's' : ''}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div>
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              background: 'rgba(148, 163, 184, 0.1)',
+                              color: '#94a3b8',
+                              padding: '3px 8px',
+                              borderRadius: '6px',
+                              fontSize: '11px',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              Not opened yet
+                            </span>
                           </div>
                         )}
                       </td>
