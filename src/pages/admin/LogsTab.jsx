@@ -87,13 +87,14 @@ export default function LogsTab() {
                         padding: '3px 8px', 
                         borderRadius: '4px', 
                         background: log.triggeredBy === 'cron' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(255, 255, 255, 0.08)',
-                        color: log.triggeredBy === 'cron' ? '#38bdf8' : '#cbd5e1'
+                        color: log.triggeredBy === 'cron' ? '#38bdf8' : '#cbd5e1',
+                        whiteSpace:'nowrap'
                       }}>
                         {log.triggeredBy === 'cron' ? '⏰ 9:00 AM Cron' : '⚡ Manual Test'}
                       </span>
                     </td>
 
-                    <td>
+                    <td style={{whiteSpace:'nowrap'}}>
                       <span class={`status-badge ${
                         log.status === 'success' ? 'badge-active' :
                         log.status === 'simulated' ? 'badge-simulated' : 'badge-paused'
