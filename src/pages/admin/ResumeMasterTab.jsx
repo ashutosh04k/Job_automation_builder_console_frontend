@@ -18,19 +18,21 @@ import {
   Eye,
   AlertCircle
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { apiUrl, authFetch } from '../../config/api';
 
 export default function ResumeMasterTab() {
+  const { user } = useAuth();
   const [resume, setResume] = useState({
-    fullName: 'Ashutosh Kumar',
-    email: 'kumarasutosh2014@gmail.com',
-    phone: '8521975695',
-    location: 'Gurgaon, Haryana',
-    title: 'Software Developer | Full Stack Developer',
-    summary: 'Full Stack Software Developer with 3+ years of experience building scalable web applications, REST APIs, real-time systems, CRM platforms, and data-intensive workflows using React.js, Node.js, MongoDB, TypeScript, AWS, and Docker.',
-    website: 'https://ashutosh-portfolio-8x6q.onrender.com/',
-    linkedin: 'https://www.linkedin.com/in/ashutosh-kumar-sde',
-    github: 'https://github.com/ashutosh04k',
+    fullName: user?.name || '',
+    email: user?.email || '',
+    phone: '',
+    location: '',
+    title: '',
+    summary: '',
+    website: '',
+    linkedin: '',
+    github: '',
     skills: [],
     experience: [],
     education: [],
@@ -43,12 +45,13 @@ export default function ResumeMasterTab() {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const [saving, setSaving] = useState(false);
+  const [loadingResume, setLoadingResume] = useState(true);
   const [msg, setMsg] = useState(null);
 
   useEffect(() => {
     fetchResume();
     fetchPdfStatus();
-  }, []);
+  }, [user?.id]);
 
   const showNotification = (type, message) => {
     setMsg({ type, text: message });
@@ -56,14 +59,32 @@ export default function ResumeMasterTab() {
   };
 
   const fetchResume = async () => {
+    setLoadingResume(true);
     try {
       const res = await authFetch(apiUrl('/api/resume'));
       const data = await res.json();
-      if (data.success && data.data && data.data.fullName) {
-        setResume(data.data);
+      if (data.success && data.data) {
+        setResume({
+          ...data.data,
+          fullName: data.data.fullName || user?.name || '',
+          email: data.data.email || user?.email || '',
+          phone: data.data.phone || '',
+          location: data.data.location || '',
+          title: data.data.title || '',
+          summary: data.data.summary || '',
+          website: data.data.website || '',
+          linkedin: data.data.linkedin || '',
+          github: data.data.github || '',
+          skills: data.data.skills || [],
+          experience: data.data.experience || [],
+          education: data.data.education || [],
+          projects: data.data.projects || []
+        });
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setLoadingResume(false);
     }
   };
 
@@ -132,21 +153,28 @@ export default function ResumeMasterTab() {
   return (
     <div>
       {msg && (
-        <div class={`toast-msg ${msg.type === 'success' ? 'toast-success' : 'toast-error'}`}>
+        <div className={`toast-msg ${msg.type === 'success' ? 'toast-success' : 'toast-error'}`}>
           {msg.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
           <span>{msg.text}</span>
         </div>
       )}
 
+      {loadingResume && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#38bdf8', fontSize: '13px', marginBottom: '16px' }}>
+          <div className="pulse-dot"></div>
+          <span>Loading your personal master resume...</span>
+        </div>
+      )}
+
       {/* Upload Custom PDF Resume Card */}
-      <div class="glass-card" style={{ border: '1px solid var(--border-highlight)', background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.5) 100%)' }}>
+      <div className="glass-card" style={{ border: '1px solid var(--border-highlight)', background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.5) 100%)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h2 class="card-header-title">
+            <h2 className="card-header-title">
               <UploadCloud size={22} color="#38bdf8" /> Upload Your Own PDF Resume
             </h2>
-            <p class="card-subtitle" style={{ marginBottom: 0 }}>
-              Upload your custom PDF resume file. This exact PDF will automatically be attached as <strong>Ashutosh_Kumar_Resume.pdf</strong> to every outgoing daily job email!
+            <p className="card-subtitle" style={{ marginBottom: 0 }}>
+              Upload your custom PDF resume file. This exact PDF will automatically be attached as <strong>{pdfStatus.filename || `${(resume.fullName || 'My').replace(/\s+/g, '_')}_Resume.pdf`}</strong> to every outgoing daily job email!
             </p>
           </div>
 
