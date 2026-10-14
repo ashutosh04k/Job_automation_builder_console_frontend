@@ -27,7 +27,7 @@ const KEYWORD_DICTIONARY = [
 ];
 
 export default function CustomResumeTab() {
-  const { authFetch } = useAuth();
+  const { user } = useAuth();
   const [companyName, setCompanyName] = useState('');
   const [targetRole, setTargetRole] = useState('Full Stack Developer');
   const [jobDescription, setJobDescription] = useState('');
