@@ -7,10 +7,10 @@ import LogsTab from './pages/admin/LogsTab';
 import SettingsTab from './pages/admin/SettingsTab';
 import AuthModal from './components/AuthModal';
 import { useAuth } from './context/AuthContext';
-import { Send, FileText, History, Settings, Globe, LogIn, UserCheck } from 'lucide-react';
+import { Send, FileText, History, Settings, Globe, LogOut, UserCheck } from 'lucide-react';
 
 export default function App() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('targets');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -26,18 +26,56 @@ export default function App() {
     });
   };
 
+  // 1. Loading state while checking token
+  if (loading) {
+    return (
+      <div style={{
+        height: '100vh',
+        width: '100vw',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-dark)',
+        color: '#38bdf8',
+        fontSize: '16px',
+        fontWeight: 600,
+        gap: '12px'
+      }}>
+        <div className="pulse-dot" style={{ width: '12px', height: '12px' }}></div>
+        <span>Initializing AutoResume Platform...</span>
+      </div>
+    );
+  }
+
+  // 2. Unauthenticated: ONLY show Public Website (strictly protect all admin UI & data)
+  if (!isAuthenticated) {
+    return (
+      <>
+        <PublicWebsite 
+          onOpenAuth={() => setIsAuthModalOpen(true)} 
+          onGoToAdmin={() => setIsAuthModalOpen(true)} 
+        />
+        <AuthModal 
+          isOpen={isAuthModalOpen} 
+          onClose={() => setIsAuthModalOpen(false)} 
+        />
+      </>
+    );
+  }
+
+  // 3. Authenticated: Render Admin Workspace & Tenant Environment
   const getPageTitle = () => {
     switch (activeTab) {
       case 'website':
-        return { title: 'AutoResume Platform', desc: 'Public website showcase & features' };
+        return { title: 'AutoResume Platform', desc: 'Public website preview & features' };
       case 'targets':
         return { 
-          title: `Job Target Automation ${isAuthenticated ? `(${user?.name}'s Workspace)` : ''}`, 
+          title: `Job Target Automation (${user?.name}'s Workspace)`, 
           desc: 'Input Email & Job Description to store targets with daily 9 AM Cron dispatch' 
         };
       case 'master':
         return { 
-          title: `Master Resume Base ${isAuthenticated ? `(${user?.name})` : ''}`, 
+          title: `Master Resume Base (${user?.name})`, 
           desc: 'Personal base resume and PDF attached to outgoing job applications' 
         };
       case 'logs':
@@ -71,32 +109,22 @@ export default function App() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {isAuthenticated ? (
-              <div 
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: 'rgba(56, 189, 248, 0.1)',
-                  border: '1px solid rgba(56, 189, 248, 0.25)',
-                  padding: '6px 14px',
-                  borderRadius: '20px',
-                  fontSize: '13px',
-                  color: '#38bdf8'
-                }}
-              >
-                <UserCheck size={15} />
-                <span>Logged in as <strong>{user?.name}</strong></span>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => setIsAuthModalOpen(true)}
-              >
-                <LogIn size={14} /> Sign In
-              </button>
-            )}
+            <div 
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(56, 189, 248, 0.1)',
+                border: '1px solid rgba(56, 189, 248, 0.25)',
+                padding: '6px 14px',
+                borderRadius: '20px',
+                fontSize: '13px',
+                color: '#38bdf8'
+              }}
+            >
+              <UserCheck size={15} />
+              <span>Workspace: <strong>{user?.name}</strong></span>
+            </div>
 
             <button
               className={`btn ${activeTab === 'website' ? 'btn-secondary' : 'btn-primary'} btn-sm`}
@@ -108,15 +136,30 @@ export default function App() {
                 <> <Globe size={14} /> View Public Website </>
               )}
             </button>
+
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={logout}
+              title="Log Out of Workspace"
+              style={{ color: '#fb7185' }}
+            >
+              <LogOut size={14} /> Sign Out
+            </button>
           </div>
         </header>
 
         <div className="page-body">
-          {activeTab === 'website' && <PublicWebsite onGoToAdmin={() => setActiveTab('targets')} />}
-          {activeTab === 'targets' && <JobTargetTab key={user?.id || 'guest-targets'} />}
-          {activeTab === 'master' && <ResumeMasterTab key={user?.id || 'guest-master'} />}
-          {activeTab === 'logs' && <LogsTab key={user?.id || 'guest-logs'} />}
-          {activeTab === 'settings' && <SettingsTab key={user?.id || 'guest-settings'} />}
+          {activeTab === 'website' && (
+            <PublicWebsite 
+              onOpenAuth={() => setIsAuthModalOpen(true)} 
+              onGoToAdmin={() => setActiveTab('targets')} 
+            />
+          )}
+          {activeTab === 'targets' && <JobTargetTab key={user?.id} />}
+          {activeTab === 'master' && <ResumeMasterTab key={user?.id} />}
+          {activeTab === 'logs' && <LogsTab key={user?.id} />}
+          {activeTab === 'settings' && <SettingsTab key={user?.id} />}
         </div>
       </main>
 
