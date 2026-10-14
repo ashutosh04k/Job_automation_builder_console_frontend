@@ -4,6 +4,7 @@ import PublicWebsite from './pages/PublicWebsite';
 import JobTargetTab from './pages/admin/JobTargetTab';
 import ResumeMasterTab from './pages/admin/ResumeMasterTab';
 import EmailTemplateTab from './pages/admin/EmailTemplateTab';
+import AutoFillManagerTab from './pages/admin/AutoFillManagerTab';
 import LogsTab from './pages/admin/LogsTab';
 import SettingsTab from './pages/admin/SettingsTab';
 import AuthModal from './components/AuthModal';
@@ -83,6 +84,11 @@ export default function App() {
         return { 
           title: `Master Resume Base (${user?.name})`, 
           desc: 'Personal base resume and PDF attached to outgoing job applications' 
+        };
+      case 'autofill':
+        return { 
+          title: `Job AutoFill Q&A Rules (${user?.name})`, 
+          desc: 'Modify questions, keywords, and answers used by the Chrome Extension to auto-fill job applications' 
         };
       case 'logs':
         return { title: 'Cron Execution Audit Logs', desc: 'Daily 9:00 AM scheduled email dispatch history' };
@@ -165,6 +171,7 @@ export default function App() {
           {activeTab === 'targets' && <JobTargetTab key={user?.id} />}
           {activeTab === 'template' && <EmailTemplateTab key={user?.id} />}
           {activeTab === 'master' && <ResumeMasterTab key={user?.id} />}
+          {activeTab === 'autofill' && <AutoFillManagerTab key={user?.id} />}
           {activeTab === 'logs' && <LogsTab key={user?.id} />}
           {activeTab === 'settings' && <SettingsTab key={user?.id} />}
         </div>

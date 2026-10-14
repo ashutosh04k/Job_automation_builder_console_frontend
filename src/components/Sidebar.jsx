@@ -12,7 +12,8 @@ import {
   LogIn,
   LogOut,
   User,
-  Mail
+  Mail,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -24,6 +25,7 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
     { id: 'targets', label: 'Job Target Automation', icon: Send, badge: 'Core' },
     { id: 'template', label: 'Email Pitch & Message', icon: Mail, badge: 'Pitch' },
     { id: 'master', label: 'Master Resume', icon: FileText },
+    { id: 'autofill', label: 'AutoFill Q&A Rules', icon: Sparkles, badge: 'Extension' },
     { id: 'logs', label: 'Cron Dispatch Logs', icon: History },
     { id: 'settings', label: 'SMTP & Cron Settings', icon: Settings },
   ];
