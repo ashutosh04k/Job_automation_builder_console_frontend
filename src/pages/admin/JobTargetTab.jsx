@@ -91,8 +91,8 @@ export default function JobTargetTab() {
   // Submit Form: Save Email + Job Description to backend
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !jobDescription) {
-      showNotification('error', 'Please fill in both Email and Job Description fields.');
+    if (!email) {
+      showNotification('error', 'Please provide a Recipient Email address.');
       return;
     }
 
@@ -304,28 +304,28 @@ export default function JobTargetTab() {
 
           {/* Input Box 2: Job Description */}
           <div class="form-group">
-            <label class="form-label">
-              <FileText size={15} color="#38bdf8" /> Target Job Description *
-            </label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label class="form-label" style={{ marginBottom: 0 }}>
+                <FileText size={15} color="#38bdf8" /> Target Job Description
+              </label>
+              <span style={{ fontSize: '11px', color: '#94a3b8' }}>Optional</span>
+            </div>
             <textarea
               class="form-textarea"
-              placeholder="Paste full job description requirements here (skills, tech stack, responsibilities)... The engine will modify executive summary and bullet points to match!"
+              placeholder="Paste full job description requirements here (optional: skills, tech stack, responsibilities)... If left blank, your default master resume pitch will be used."
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
-              required
             ></textarea>
           </div>
 
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-            {jobDescription && (
-              <button
-                type="button"
-                class="btn btn-secondary"
-                onClick={() => handlePreviewResume(jobDescription, targetRole, companyName)}
-              >
-                <Eye size={16} /> Preview Modified Resume
-              </button>
-            )}
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onClick={() => handlePreviewResume(jobDescription, targetRole, companyName)}
+            >
+              <Eye size={16} /> Preview Modified Resume
+            </button>
             <button type="submit" class="btn btn-primary" disabled={submitting}>
               <Send size={16} /> {submitting ? 'Saving to Backend...' : 'Save Target & Schedule Daily 9 AM Mail'}
             </button>
@@ -436,7 +436,11 @@ export default function JobTargetTab() {
                           fontSize: '13px', 
                           color: '#cbd5e1' 
                         }}>
-                          {target.jobDescription}
+                          {target.jobDescription ? (
+                            target.jobDescription
+                          ) : (
+                            <span style={{ color: '#64748b', fontStyle: 'italic', fontSize: '12px' }}>Standard Outreach (No JD)</span>
+                          )}
                         </div>
                       </td>
 
