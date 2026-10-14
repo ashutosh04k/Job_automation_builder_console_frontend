@@ -32,12 +32,14 @@ export default function EmailTemplateTab() {
   const [previewData, setPreviewData] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
 
+  const [activeFocusField, setActiveFocusField] = useState('body');
+  const subjectInputRef = useRef(null);
   const textareaRef = useRef(null);
 
   const availableTags = [
     { tag: '{{name}}', label: 'Full Name', desc: 'Your display name' },
-    { tag: '{{role}}', label: 'Job Role', desc: 'Target job role title' },
-    { tag: '{{company}}', label: 'Company Name', desc: 'Target company' },
+    { tag: '{{role}}', label: 'Job Role', desc: 'Target job role title (matches job posting)' },
+    { tag: '{{company}}', label: 'Company Name', desc: 'Target company name' },
     { tag: '{{skills}}', label: 'Skills List', desc: 'Curated skills string' },
     { tag: '{{phone}}', label: 'Phone Number', desc: 'Your contact phone' },
     { tag: '{{email}}', label: 'Email Address', desc: 'Your contact email' },
@@ -67,7 +69,11 @@ export default function EmailTemplateTab() {
       const res = await authFetch(apiUrl('/api/template'));
       const data = await res.json();
       if (data.success && data.data) {
-        setSubject(data.data.subject || '');
+        let loadedSubject = data.data.subject || '';
+        if (loadedSubject === 'Full Stack Developer (3+ Years) | Open to Frontend / Full Stack Roles') {
+          loadedSubject = '{{role}} (3+ Years) | Open to {{role}} Roles';
+        }
+        setSubject(loadedSubject);
         setBody(data.data.body || '');
       }
     } catch (err) {
@@ -148,10 +154,26 @@ export default function EmailTemplateTab() {
   };
 
   const insertTag = (tag) => {
+    if (activeFocusField === 'subject' && subjectInputRef.current) {
+      const input = subjectInputRef.current;
+      const start = input.selectionStart || 0;
+      const end = input.selectionEnd || 0;
+      const textBefore = subject.substring(0, start);
+      const textAfter = subject.substring(end);
+      const newSub = textBefore + tag + textAfter;
+      setSubject(newSub);
+
+      setTimeout(() => {
+        input.focus();
+        input.setSelectionRange(start + tag.length, start + tag.length);
+      }, 50);
+      return;
+    }
+
     if (!textareaRef.current) return;
     const textarea = textareaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
     const textBefore = body.substring(0, start);
     const textAfter = body.substring(end);
     const newBody = textBefore + tag + textAfter;
@@ -216,7 +238,7 @@ export default function EmailTemplateTab() {
             marginBottom: '20px'
           }}>
             <div style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Tag size={12} color="#38bdf8" /> Click any tag to insert dynamic variable:
+              <Tag size={12} color="#38bdf8" /> Click any tag to insert dynamic variable (into {activeFocusField === 'subject' ? 'Subject' : 'Message Body'}):
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {availableTags.map((t) => (
@@ -244,20 +266,51 @@ export default function EmailTemplateTab() {
           <form onSubmit={handleSave} className="form-grid">
             {/* Subject Input */}
             <div className="form-group">
-              <label className="form-label">
-                <Sparkles size={14} color="#fbbf24" /> Email Subject Line
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <label className="form-label">
+                  <Sparkles size={14} color="#fbbf24" /> Email Subject Line
+                </label>
+                <span style={{ fontSize: '11px', color: '#38bdf8' }}>Uses dynamic job role</span>
+              </div>
               <input
+                ref={subjectInputRef}
                 type="text"
                 className="form-input"
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                placeholder="e.g. {{role}} (3+ Years) | Open to Opportunities - {{name}}"
+                onFocus={() => setActiveFocusField('subject')}
+                placeholder="e.g. {{role}} (3+ Years) | Open to {{role}} Roles"
                 required
               />
-              <span style={{ fontSize: '11px', color: '#64748b' }}>
-                Tip: Keep subject clean and professional to maximize Gmail Primary tab delivery.
-              </span>
+              
+              {/* Dynamic Subject Presets */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', marginTop: '6px' }}>
+                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Quick Presets:</span>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ fontSize: '10px', padding: '2px 7px', background: 'rgba(255,255,255,0.04)' }}
+                  onClick={() => setSubject('{{role}} (3+ Years) | Open to {{role}} Roles')}
+                >
+                  Role (3+ Yrs) | Open to Roles
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ fontSize: '10px', padding: '2px 7px', background: 'rgba(255,255,255,0.04)' }}
+                  onClick={() => setSubject('Application for {{role}} at {{company}} - {{name}}')}
+                >
+                  Application for Role at Company
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  style={{ fontSize: '10px', padding: '2px 7px', background: 'rgba(255,255,255,0.04)' }}
+                  onClick={() => setSubject('{{role}} Candidate | {{name}} (3+ Yrs Experience)')}
+                >
+                  Role Candidate | Name
+                </button>
+              </div>
             </div>
 
             {/* Message Body Input */}
@@ -271,6 +324,7 @@ export default function EmailTemplateTab() {
                 rows={16}
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
+                onFocus={() => setActiveFocusField('body')}
                 placeholder="Hi Sir/Maam..."
                 style={{ fontFamily: 'inherit', fontSize: '14px', lineHeight: 1.65 }}
                 required
