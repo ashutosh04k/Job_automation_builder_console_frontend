@@ -193,14 +193,14 @@ export default function JobTargetTab() {
   };
 
   // Preview Tailored Resume Output
-  const handlePreviewResume = async (jd, role) => {
+  const handlePreviewResume = async (jd, role, company = '') => {
     setPreviewLoading(true);
     setShowPreviewModal(true);
     try {
       const res = await authFetch(apiUrl('/api/resume/preview'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ jobDescription: jd, targetRole: role })
+        body: JSON.stringify({ jobDescription: jd, targetRole: role, companyName: company })
       });
       const data = await res.json();
       if (data.success) {
@@ -307,7 +307,7 @@ export default function JobTargetTab() {
               <button
                 type="button"
                 class="btn btn-secondary"
-                onClick={() => handlePreviewResume(jobDescription, targetRole)}
+                onClick={() => handlePreviewResume(jobDescription, targetRole, companyName)}
               >
                 <Eye size={16} /> Preview Modified Resume
               </button>
@@ -515,7 +515,7 @@ export default function JobTargetTab() {
 
                           <button
                             class="btn btn-secondary btn-sm"
-                            onClick={() => handlePreviewResume(target.jobDescription, target.targetRole)}
+                            onClick={() => handlePreviewResume(target.jobDescription, target.targetRole, target.companyName)}
                             title="Preview tailored HTML resume"
                           >
                             <Eye size={12} />

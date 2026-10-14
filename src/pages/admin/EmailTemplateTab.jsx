@@ -71,7 +71,7 @@ export default function EmailTemplateTab() {
       if (data.success && data.data) {
         let loadedSubject = data.data.subject || '';
         if (loadedSubject === 'Full Stack Developer (3+ Years) | Open to Frontend / Full Stack Roles') {
-          loadedSubject = '{{role}} (3+ Years) | Open to {{role}} Roles';
+          loadedSubject = 'Application for {{role}} at {{company}} || (3+ Years) | Open to {{role}} Roles';
         }
         setSubject(loadedSubject);
         setBody(data.data.body || '');
@@ -101,6 +101,11 @@ export default function EmailTemplateTab() {
       const data = await res.json();
       if (data.success) {
         showNotification('success', '🎉 Custom email pitch saved! All outgoing emails will now use this message.');
+        const updatedSub = data.data?.subject || subject;
+        const updatedBody = data.data?.body || body;
+        setSubject(updatedSub);
+        setBody(updatedBody);
+        updateLivePreview(updatedSub, updatedBody);
       } else {
         showNotification('error', data.error || 'Failed to save template.');
       }
@@ -120,6 +125,7 @@ export default function EmailTemplateTab() {
       if (data.success && data.data) {
         setSubject(data.data.subject);
         setBody(data.data.body);
+        updateLivePreview(data.data.subject, data.data.body);
         showNotification('success', 'Template reset to default pitch.');
       }
     } catch (err) {
@@ -129,15 +135,19 @@ export default function EmailTemplateTab() {
     }
   };
 
-  const updateLivePreview = async () => {
+  const updateLivePreview = async (overrideSubject = null, overrideBody = null) => {
+    const curSubject = overrideSubject !== null ? overrideSubject : subject;
+    const curBody = overrideBody !== null ? overrideBody : body;
+    if (!curSubject && !curBody) return;
+
     setPreviewLoading(true);
     try {
       const res = await authFetch(apiUrl('/api/template/preview'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subject,
-          body,
+          subject: curSubject,
+          body: curBody,
           targetRole: previewRole,
           companyName: previewCompany
         })
@@ -279,7 +289,7 @@ export default function EmailTemplateTab() {
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 onFocus={() => setActiveFocusField('subject')}
-                placeholder="e.g. {{role}} (3+ Years) | Open to {{role}} Roles"
+                placeholder="e.g. Application for {{role}} at {{company}} || (3+ Years) | Open to {{role}} Roles"
                 required
               />
               
@@ -289,8 +299,24 @@ export default function EmailTemplateTab() {
                 <button
                   type="button"
                   className="btn btn-secondary btn-sm"
+                  style={{ fontSize: '10px', padding: '2px 7px', background: 'rgba(56,189,248,0.1)', color: '#38bdf8', borderColor: 'rgba(56,189,248,0.3)' }}
+                  onClick={() => {
+                    const sub = 'Application for {{role}} at {{company}} || (3+ Years) | Open to {{role}} Roles';
+                    setSubject(sub);
+                    updateLivePreview(sub, body);
+                  }}
+                >
+                  Application for Role at Company || Open to Roles
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
                   style={{ fontSize: '10px', padding: '2px 7px', background: 'rgba(255,255,255,0.04)' }}
-                  onClick={() => setSubject('{{role}} (3+ Years) | Open to {{role}} Roles')}
+                  onClick={() => {
+                    const sub = '{{role}} (3+ Years) | Open to {{role}} Roles';
+                    setSubject(sub);
+                    updateLivePreview(sub, body);
+                  }}
                 >
                   Role (3+ Yrs) | Open to Roles
                 </button>
@@ -298,17 +324,13 @@ export default function EmailTemplateTab() {
                   type="button"
                   className="btn btn-secondary btn-sm"
                   style={{ fontSize: '10px', padding: '2px 7px', background: 'rgba(255,255,255,0.04)' }}
-                  onClick={() => setSubject('Application for {{role}} at {{company}} - {{name}}')}
+                  onClick={() => {
+                    const sub = 'Application for {{role}} at {{company}} - {{name}}';
+                    setSubject(sub);
+                    updateLivePreview(sub, body);
+                  }}
                 >
-                  Application for Role at Company
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary btn-sm"
-                  style={{ fontSize: '10px', padding: '2px 7px', background: 'rgba(255,255,255,0.04)' }}
-                  onClick={() => setSubject('{{role}} Candidate | {{name}} (3+ Yrs Experience)')}
-                >
-                  Role Candidate | Name
+                  Application for Role at Company - Name
                 </button>
               </div>
             </div>
