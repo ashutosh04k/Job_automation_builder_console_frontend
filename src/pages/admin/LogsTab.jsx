@@ -68,7 +68,7 @@ export default function LogsTab() {
                 {logs.map((log) => (
                   <tr key={log._id}>
                     <td>
-                      <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '13px' }}>
+                      <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '13px',whiteSpace:'nowrap' }}>
                         {new Date(log.createdAt).toLocaleDateString()}
                       </div>
                       <div style={{ fontSize: '11px', color: '#64748b' }}>

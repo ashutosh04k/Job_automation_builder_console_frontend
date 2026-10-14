@@ -11,7 +11,8 @@ import {
   ChevronRight,
   LogIn,
   LogOut,
-  User
+  User,
+  Mail
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,6 +22,7 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
   const menuItems = [
     { id: 'website', label: 'Public Website', icon: Globe },
     { id: 'targets', label: 'Job Target Automation', icon: Send, badge: 'Core' },
+    { id: 'template', label: 'Email Pitch & Message', icon: Mail, badge: 'Pitch' },
     { id: 'master', label: 'Master Resume', icon: FileText },
     { id: 'logs', label: 'Cron Dispatch Logs', icon: History },
     { id: 'settings', label: 'SMTP & Cron Settings', icon: Settings },

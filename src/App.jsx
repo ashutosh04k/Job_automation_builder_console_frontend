@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar';
 import PublicWebsite from './pages/PublicWebsite';
 import JobTargetTab from './pages/admin/JobTargetTab';
 import ResumeMasterTab from './pages/admin/ResumeMasterTab';
+import EmailTemplateTab from './pages/admin/EmailTemplateTab';
 import LogsTab from './pages/admin/LogsTab';
 import SettingsTab from './pages/admin/SettingsTab';
 import AuthModal from './components/AuthModal';
@@ -72,6 +73,11 @@ export default function App() {
         return { 
           title: `Job Target Automation (${user?.name}'s Workspace)`, 
           desc: 'Input Email & Job Description to store targets with daily 9 AM Cron dispatch' 
+        };
+      case 'template':
+        return { 
+          title: `Cold Email Pitch & Message (${user?.name})`, 
+          desc: 'Customize the email message and subject dispatched to recruiters daily at 9:00 AM' 
         };
       case 'master':
         return { 
@@ -157,6 +163,7 @@ export default function App() {
             />
           )}
           {activeTab === 'targets' && <JobTargetTab key={user?.id} />}
+          {activeTab === 'template' && <EmailTemplateTab key={user?.id} />}
           {activeTab === 'master' && <ResumeMasterTab key={user?.id} />}
           {activeTab === 'logs' && <LogsTab key={user?.id} />}
           {activeTab === 'settings' && <SettingsTab key={user?.id} />}
