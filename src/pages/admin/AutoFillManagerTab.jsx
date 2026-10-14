@@ -157,7 +157,7 @@ export default function AutoFillManagerTab() {
   };
 
   const handleCopyAuthToken = () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('autoresume_token') || localStorage.getItem('token');
     if (token) {
       navigator.clipboard.writeText(token);
       setCopiedToken(true);
