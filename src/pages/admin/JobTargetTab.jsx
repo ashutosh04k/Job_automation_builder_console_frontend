@@ -227,6 +227,52 @@ export default function JobTargetTab() {
     }
   };
 
+  // Download Tailored PDF for a stored target
+  const handleDownloadTailoredPdf = async (targetId, role) => {
+    try {
+      showNotification('success', '⏳ Compiling ATS tailored PDF resume...');
+      const res = await authFetch(apiUrl(`/api/resume/tailored-pdf/${targetId}`));
+      if (!res.ok) throw new Error('Failed to generate tailored PDF');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Ashutosh_Kumar_${(role || 'Resume').replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      showNotification('success', '📄 ATS Tailored Resume PDF downloaded!');
+    } catch (err) {
+      showNotification('error', 'Error downloading tailored PDF: ' + err.message);
+    }
+  };
+
+  // Download Tailored PDF directly from preview inputs
+  const handleDownloadDirectPdf = async (role, company, jd) => {
+    try {
+      showNotification('success', '⏳ Compiling ATS tailored PDF resume...');
+      const res = await authFetch(apiUrl('/api/resume/tailored-pdf'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetRole: role, companyName: company, jobDescription: jd })
+      });
+      if (!res.ok) throw new Error('Failed to generate tailored PDF');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Ashutosh_Kumar_${(role || 'Resume').replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      showNotification('success', '📄 ATS Tailored Resume PDF downloaded!');
+    } catch (err) {
+      showNotification('error', 'Error downloading tailored PDF: ' + err.message);
+    }
+  };
+
   const startEntryIndex = (page - 1) * limit + 1;
   const endEntryIndex = Math.min(page * limit, paginationInfo.total);
 
@@ -575,9 +621,18 @@ export default function JobTargetTab() {
                           <button
                             class="btn btn-secondary btn-sm"
                             onClick={() => handlePreviewResume(target.jobDescription, target.targetRole, target.companyName)}
-                            title="Preview tailored HTML resume"
+                            title="Preview tailored HTML pitch"
                           >
                             <Eye size={12} />
+                          </button>
+
+                          <button
+                            class="btn btn-secondary btn-sm"
+                            style={{ color: '#38bdf8', borderColor: 'rgba(56,189,248,0.35)', padding: '4px 8px', gap: '4px' }}
+                            onClick={() => handleDownloadTailoredPdf(target._id, target.targetRole)}
+                            title="Download Dynamic ATS Tailored PDF Resume for this job"
+                          >
+                            <FileText size={12} /> PDF
                           </button>
 
                           <button
@@ -669,7 +724,17 @@ export default function JobTargetTab() {
               <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Sparkles color="#38bdf8" size={18} /> Modified Resume Live HTML Preview
               </h3>
-              <button class="btn btn-secondary btn-sm" onClick={() => setShowPreviewModal(false)}>✕ Close</button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  style={{ color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.4)', gap: '6px' }}
+                  onClick={() => handleDownloadDirectPdf(targetRole, companyName, jobDescription)}
+                >
+                  <FileText size={14} /> Download Tailored ATS PDF
+                </button>
+                <button class="btn btn-secondary btn-sm" onClick={() => setShowPreviewModal(false)}>✕ Close</button>
+              </div>
             </div>
 
             {previewLoading ? (
