@@ -296,6 +296,15 @@ body {
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
 }
 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-animation {
+  animation: spin 0.8s linear infinite;
+}
+
 /* Main Content Wrapper - Independent Right Scroll Panel */
 .main-content {
   flex: 1;

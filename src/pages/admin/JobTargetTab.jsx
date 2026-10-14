@@ -15,7 +15,8 @@ import {
   Briefcase,
   Search,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Loader2
 } from 'lucide-react';
 import { apiUrl, authFetch } from '../../config/api';
 
@@ -31,6 +32,7 @@ export default function JobTargetTab() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState(null);
+  const [sendingStatus, setSendingStatus] = useState({});
   
   // Pagination & Search states
   const [page, setPage] = useState(1);
@@ -126,19 +128,31 @@ export default function JobTargetTab() {
 
   // Trigger manual test email for a target now
   const handleTriggerNow = async (targetId, recipientEmail) => {
+    setSendingStatus(prev => ({ ...prev, [targetId]: 'sending' }));
     showNotification('success', `⏳ Generating modified resume & dispatching email to ${recipientEmail}...`);
     try {
       const res = await authFetch(apiUrl(`/api/targets/${targetId}/trigger`), { method: 'POST' });
       const data = await res.json();
       if (data.success && data.outcome?.result?.success) {
         showNotification('success', `🎉 Email process complete: ${data.outcome?.result?.message || 'Email sent!'}`);
+        setSendingStatus(prev => ({ ...prev, [targetId]: 'sent' }));
         fetchTargets(page, limit, search);
       } else {
         const errMsg = data.outcome?.result?.message || data.error || 'Failed to send test email.';
         showNotification('error', `❌ ${errMsg}`);
+        setSendingStatus(prev => ({ ...prev, [targetId]: 'failed' }));
       }
     } catch (err) {
       showNotification('error', 'Error triggering email: ' + err.message);
+      setSendingStatus(prev => ({ ...prev, [targetId]: 'failed' }));
+    } finally {
+      setTimeout(() => {
+        setSendingStatus(prev => {
+          const next = { ...prev };
+          delete next[targetId];
+          return next;
+        });
+      }, 3000);
     }
   };
 
@@ -505,13 +519,54 @@ export default function JobTargetTab() {
 
                       <td style={{ textAlign: 'right' }}>
                         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end',whiteSpace:'nowrap' }}>
-                          <button
-                            class="btn btn-primary btn-sm"
-                            onClick={() => handleTriggerNow(target._id, target.email)}
-                            title="Trigger instant test email send now"
-                          >
-                            <Send size={12} /> Send Email Now
-                          </button>
+                          {(() => {
+                            const status = sendingStatus[target._id];
+                            const isSending = status === 'sending';
+                            const isSent = status === 'sent';
+                            const isFailed = status === 'failed';
+                            const isBusy = Boolean(status);
+
+                            return (
+                              <button
+                                className={`btn btn-sm ${!status ? 'btn-primary' : ''}`}
+                                style={{
+                                  background: isSent ? '#16a34a' : isFailed ? '#dc2626' : isSending ? 'rgba(56, 189, 248, 0.2)' : undefined,
+                                  borderColor: isSent ? '#22c55e' : isFailed ? '#ef4444' : isSending ? '#38bdf8' : undefined,
+                                  color: isSent || isFailed ? '#ffffff' : isSending ? '#38bdf8' : undefined,
+                                  minWidth: '135px',
+                                  justifyContent: 'center',
+                                  cursor: isBusy ? 'not-allowed' : 'pointer',
+                                  opacity: isSending ? 0.9 : 1,
+                                  transition: 'all 0.25s ease'
+                                }}
+                                disabled={isBusy}
+                                onClick={() => handleTriggerNow(target._id, target.email)}
+                                title={isBusy ? 'Email operation in progress...' : 'Trigger instant test email send now'}
+                              >
+                                {isSending ? (
+                                  <>
+                                    <Loader2 size={13} className="spin-animation" />
+                                    <span>Sending...</span>
+                                  </>
+                                ) : isSent ? (
+                                  <>
+                                    <CheckCircle2 size={13} />
+                                    <span>Sent!</span>
+                                  </>
+                                ) : isFailed ? (
+                                  <>
+                                    <AlertCircle size={13} />
+                                    <span>Failed</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Send size={12} />
+                                    <span>Send Email Now</span>
+                                  </>
+                                )}
+                              </button>
+                            );
+                          })()}
 
                           <button
                             class="btn btn-secondary btn-sm"
