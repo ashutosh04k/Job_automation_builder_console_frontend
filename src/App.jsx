@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import PublicWebsite from './pages/PublicWebsite';
 import JobTargetTab from './pages/admin/JobTargetTab';
 import ResumeMasterTab from './pages/admin/ResumeMasterTab';
 import LogsTab from './pages/admin/LogsTab';
 import SettingsTab from './pages/admin/SettingsTab';
-import { Send, FileText, History, Settings, Globe } from 'lucide-react';
+import AuthModal from './components/AuthModal';
+import { useAuth } from './context/AuthContext';
+import { Send, FileText, History, Settings, Globe, LogIn, UserCheck } from 'lucide-react';
 
 export default function App() {
+  const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState('targets');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar_collapsed');
     return saved === 'true';
@@ -27,13 +31,19 @@ export default function App() {
       case 'website':
         return { title: 'AutoResume Platform', desc: 'Public website showcase & features' };
       case 'targets':
-        return { title: 'Admin Panel - Resume Automation Form', desc: '2 input fields: Email & Job Description stored to backend with daily 9 AM Cron dispatch' };
+        return { 
+          title: `Job Target Automation ${isAuthenticated ? `(${user?.name}'s Workspace)` : ''}`, 
+          desc: 'Input Email & Job Description to store targets with daily 9 AM Cron dispatch' 
+        };
       case 'master':
-        return { title: 'Master Resume Base', desc: 'Base profile tailored for each target job description' };
+        return { 
+          title: `Master Resume Base ${isAuthenticated ? `(${user?.name})` : ''}`, 
+          desc: 'Personal base resume and PDF attached to outgoing job applications' 
+        };
       case 'logs':
         return { title: 'Cron Execution Audit Logs', desc: 'Daily 9:00 AM scheduled email dispatch history' };
       case 'settings':
-        return { title: 'SMTP Email & Cron Configuration', desc: 'Manage email permissions and SMTP credentials' };
+        return { title: 'SMTP Email & Sender Configuration', desc: 'Manage custom email credentials and SMTP settings' };
       default:
         return { title: 'Admin Panel', desc: 'MERN Resume Automation System' };
     }
@@ -49,6 +59,7 @@ export default function App() {
         setActiveTab={setActiveTab} 
         isCollapsed={isCollapsed} 
         setIsCollapsed={toggleSidebar} 
+        onOpenAuth={() => setIsAuthModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -59,7 +70,34 @@ export default function App() {
             <p className="page-desc">{desc}</p>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {isAuthenticated ? (
+              <div 
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'rgba(56, 189, 248, 0.1)',
+                  border: '1px solid rgba(56, 189, 248, 0.25)',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '13px',
+                  color: '#38bdf8'
+                }}
+              >
+                <UserCheck size={15} />
+                <span>Logged in as <strong>{user?.name}</strong></span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => setIsAuthModalOpen(true)}
+              >
+                <LogIn size={14} /> Sign In
+              </button>
+            )}
+
             <button
               className={`btn ${activeTab === 'website' ? 'btn-secondary' : 'btn-primary'} btn-sm`}
               onClick={() => setActiveTab(activeTab === 'website' ? 'targets' : 'website')}
@@ -75,12 +113,18 @@ export default function App() {
 
         <div className="page-body">
           {activeTab === 'website' && <PublicWebsite onGoToAdmin={() => setActiveTab('targets')} />}
-          {activeTab === 'targets' && <JobTargetTab />}
-          {activeTab === 'master' && <ResumeMasterTab />}
-          {activeTab === 'logs' && <LogsTab />}
-          {activeTab === 'settings' && <SettingsTab />}
+          {activeTab === 'targets' && <JobTargetTab key={user?.id || 'guest-targets'} />}
+          {activeTab === 'master' && <ResumeMasterTab key={user?.id || 'guest-master'} />}
+          {activeTab === 'logs' && <LogsTab key={user?.id || 'guest-logs'} />}
+          {activeTab === 'settings' && <SettingsTab key={user?.id || 'guest-settings'} />}
         </div>
       </main>
+
+      {/* Multi-Tenant Authentication Modal */}
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </div>
   );
 }

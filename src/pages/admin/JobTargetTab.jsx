@@ -17,7 +17,7 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { apiUrl } from '../../config/api';
+import { apiUrl, authFetch } from '../../config/api';
 
 export default function JobTargetTab() {
   // 2 Core Input Boxes + metadata state
@@ -66,7 +66,7 @@ export default function JobTargetTab() {
         limit: currentLimit.toString(),
         search: currentSearch
       });
-      const res = await fetch(apiUrl(`/api/targets?${query.toString()}`));
+      const res = await authFetch(apiUrl(`/api/targets?${query.toString()}`));
       const data = await res.json();
       if (data.success) {
         setTargets(data.data || []);
@@ -96,7 +96,7 @@ export default function JobTargetTab() {
 
     setSubmitting(true);
     try {
-      const res = await fetch(apiUrl('/api/targets'), {
+      const res = await authFetch(apiUrl('/api/targets'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -128,7 +128,7 @@ export default function JobTargetTab() {
   const handleTriggerNow = async (targetId, recipientEmail) => {
     showNotification('success', `⏳ Generating modified resume & dispatching email to ${recipientEmail}...`);
     try {
-      const res = await fetch(apiUrl(`/api/targets/${targetId}/trigger`), { method: 'POST' });
+      const res = await authFetch(apiUrl(`/api/targets/${targetId}/trigger`), { method: 'POST' });
       const data = await res.json();
       if (data.success && data.outcome?.result?.success) {
         showNotification('success', `🎉 Email process complete: ${data.outcome?.result?.message || 'Email sent!'}`);
@@ -146,7 +146,7 @@ export default function JobTargetTab() {
   const handleTriggerAllCron = async () => {
     showNotification('success', '⏳ Executing Daily 9:00 AM Cron Batch Job for all active targets...');
     try {
-      const res = await fetch(apiUrl('/api/targets/trigger-all-cron'), { method: 'POST' });
+      const res = await authFetch(apiUrl('/api/targets/trigger-all-cron'), { method: 'POST' });
       const data = await res.json();
       if (data.success) {
         showNotification('success', `🎉 Batch Cron executed! Processed ${data.summary?.processedCount || 0} email targets.`);
@@ -162,7 +162,7 @@ export default function JobTargetTab() {
   // Toggle Target Active State
   const handleToggleActive = async (target) => {
     try {
-      const res = await fetch(apiUrl(`/api/targets/${target._id}`), {
+      const res = await authFetch(apiUrl(`/api/targets/${target._id}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !target.isActive })
@@ -181,7 +181,7 @@ export default function JobTargetTab() {
   const handleDelete = async (targetId) => {
     if (!window.confirm('Are you sure you want to delete this target entry?')) return;
     try {
-      const res = await fetch(apiUrl(`/api/targets/${targetId}`), { method: 'DELETE' });
+      const res = await authFetch(apiUrl(`/api/targets/${targetId}`), { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
         showNotification('success', 'Job target deleted.');
@@ -197,7 +197,7 @@ export default function JobTargetTab() {
     setPreviewLoading(true);
     setShowPreviewModal(true);
     try {
-      const res = await fetch(apiUrl('/api/resume/preview'), {
+      const res = await authFetch(apiUrl('/api/resume/preview'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ jobDescription: jd, targetRole: role })

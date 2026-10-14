@@ -18,7 +18,7 @@ import {
   Eye,
   AlertCircle
 } from 'lucide-react';
-import { apiUrl } from '../../config/api';
+import { apiUrl, authFetch } from '../../config/api';
 
 export default function ResumeMasterTab() {
   const [resume, setResume] = useState({
@@ -57,7 +57,7 @@ export default function ResumeMasterTab() {
 
   const fetchResume = async () => {
     try {
-      const res = await fetch(apiUrl('/api/resume'));
+      const res = await authFetch(apiUrl('/api/resume'));
       const data = await res.json();
       if (data.success && data.data && data.data.fullName) {
         setResume(data.data);
@@ -69,7 +69,7 @@ export default function ResumeMasterTab() {
 
   const fetchPdfStatus = async () => {
     try {
-      const res = await fetch(apiUrl('/api/resume/pdf-status'));
+      const res = await authFetch(apiUrl('/api/resume/pdf-status'));
       const data = await res.json();
       setPdfStatus(data);
     } catch (err) {
@@ -90,7 +90,7 @@ export default function ResumeMasterTab() {
 
     setUploadingPdf(true);
     try {
-      const res = await fetch(apiUrl('/api/resume/upload-pdf'), {
+      const res = await authFetch(apiUrl('/api/resume/upload-pdf'), {
         method: 'POST',
         body: formData
       });
@@ -113,7 +113,7 @@ export default function ResumeMasterTab() {
     e.preventDefault();
     setSaving(true);
     try {
-      const res = await fetch(apiUrl('/api/resume'), {
+      const res = await authFetch(apiUrl('/api/resume'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(resume)
@@ -156,10 +156,10 @@ export default function ResumeMasterTab() {
                 <FileCheck size={14} /> Custom PDF Active ({pdfStatus.size})
               </span>
               <a 
-                href={apiUrl('/api/resume/download-pdf')} 
+                href={apiUrl(`/api/resume/download-pdf${localStorage.getItem('autoresume_token') ? `?token=${encodeURIComponent(localStorage.getItem('autoresume_token'))}` : ''}`)} 
                 target="_blank" 
                 rel="noreferrer" 
-                class="btn btn-secondary btn-sm"
+                className="btn btn-secondary btn-sm"
                 title="Preview/Download active custom PDF"
               >
                 <Eye size={14} /> View Active PDF
@@ -173,19 +173,19 @@ export default function ResumeMasterTab() {
             type="file"
             accept=".pdf,application/pdf"
             onChange={(e) => setSelectedFile(e.target.files[0])}
-            class="form-input"
+            className="form-input"
             style={{ maxWidth: '420px', padding: '10px 14px' }}
           />
-          <button type="submit" class="btn btn-primary" disabled={uploadingPdf || !selectedFile}>
+          <button type="submit" className="btn btn-primary" disabled={uploadingPdf || !selectedFile}>
             <UploadCloud size={16} /> {uploadingPdf ? 'Uploading PDF...' : 'Upload & Set Active PDF'}
           </button>
         </form>
       </div>
 
       {/* Master Profile Form */}
-      <div class="glass-card">
-        <h2 class="card-header-title">
-          <FileText size={20} color="#38bdf8" /> Master Resume Profile — Ashutosh Kumar
+      <div className="glass-card">
+        <h2 className="card-header-title">
+          <FileText size={20} color="#38bdf8" /> Master Resume Profile — {resume.fullName || 'My Profile'}
         </h2>
         <p class="card-subtitle">
           Your authentic work experience and contact details used in cold outreach email bodies.
