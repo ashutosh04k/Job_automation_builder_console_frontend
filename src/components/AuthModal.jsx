@@ -66,11 +66,21 @@ export default function AuthModal({ isOpen, onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div 
         className="modal-content" 
-        style={{ maxWidth: '440px', padding: '32px' }} 
+        style={{ maxWidth: '440px', padding: '32px', position: 'relative', overflow: 'hidden' }} 
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Ambient Decorative Shapes */}
+        <div aria-hidden="true" style={{
+          position: 'absolute', width: 420, height: 420, borderRadius: '50%', right: -140, top: -180,
+          border: '60px solid rgba(255,122,89,0.14)', pointerEvents: 'none', zIndex: 0
+        }} />
+        <div aria-hidden="true" style={{
+          position: 'absolute', width: 180, height: 180, borderRadius: '50%', right: 160, bottom: -110,
+          backgroundColor: 'rgba(255,255,255,0.04)', pointerEvents: 'none', zIndex: 0
+        }} />
+
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
           <div>
             <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '8px' }}>
               {mode === 'login' ? <LogIn size={20} color="var(--c-accent)" /> : <UserPlus size={20} color="var(--c-accent)" />}

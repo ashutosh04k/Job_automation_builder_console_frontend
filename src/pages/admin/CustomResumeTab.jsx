@@ -165,16 +165,29 @@ export default function CustomResumeTab() {
 
       {/* Hero Banner */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.85))',
-        border: '1px solid rgba(56, 189, 248, 0.25)',
-        padding: '24px'
+        background: 'linear-gradient(135deg, var(--c-brand-deep) 0%, var(--c-brand) 100%)',
+        border: '1px solid var(--c-on-dark-line)',
+        padding: '24px',
+        position: 'relative',
+        overflow: 'hidden',
+        color: 'var(--c-on-dark)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
+        {/* Ambient Decorative Shapes */}
+        <div aria-hidden="true" style={{
+          position: 'absolute', width: 420, height: 420, borderRadius: '50%', right: -140, top: -180,
+          border: '60px solid rgba(255,122,89,0.14)', pointerEvents: 'none', zIndex: 0
+        }} />
+        <div aria-hidden="true" style={{
+          position: 'absolute', width: 180, height: 180, borderRadius: '50%', right: 160, bottom: -110,
+          backgroundColor: 'rgba(255,255,255,0.04)', pointerEvents: 'none', zIndex: 0
+        }} />
+
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--c-on-dark)', display: 'flex', alignItems: 'center', gap: '10px' }}>
               <Sparkles size={22} color="var(--c-accent)" /> ATS Resume Tailor & Builder
             </h2>
-            <p style={{ color: 'var(--c-ink-soft)', fontSize: '13px', marginTop: '6px', maxWidth: '680px', lineHeight: '1.5' }}>
+            <p style={{ color: 'var(--c-on-dark-muted)', fontSize: '13px', marginTop: '6px', maxWidth: '680px', lineHeight: '1.5' }}>
               Generate custom, 1-page ATS-optimized resumes formatted to your exact LaTeX layout.
               Input the target company, role, and job description to dynamically highlight and prioritize relevant experience, skills, and projects.
             </p>

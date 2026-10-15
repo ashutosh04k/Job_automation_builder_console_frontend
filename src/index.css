@@ -338,6 +338,32 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   background-color: var(--c-page);
+  position: relative;
+}
+
+/* Ambient Decorative Background Shapes */
+.ambient-box-1 {
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  right: -140px;
+  top: -180px;
+  border: 60px solid rgba(255, 122, 89, 0.14);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambient-box-2 {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  right: 160px;
+  bottom: -110px;
+  background-color: rgba(255, 255, 255, 0.04);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .top-bar {
@@ -346,7 +372,8 @@ body {
   justify-content: space-between;
   padding: 20px 36px;
   border-bottom: 1px solid var(--c-line);
-  background: var(--c-surface);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
   position: sticky;
   top: 0;
   z-index: 40;

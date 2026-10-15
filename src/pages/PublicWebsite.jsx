@@ -14,12 +14,15 @@ import {
   FileText 
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import ThemeAmbientBoxes from '../components/ThemeAmbientBoxes';
 
 export default function PublicWebsite({ onOpenAuth, onGoToAdmin }) {
   const { isAuthenticated, user } = useAuth();
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg-dark)' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--c-brand-deep)', position: 'relative', overflowX: 'hidden' }}>
+      {/* Decorative Theme Ambient Background Circles */}
+      <ThemeAmbientBoxes />
       {/* Public Top Navigation Bar */}
       <header style={{
         display: 'flex',
@@ -99,8 +102,20 @@ export default function PublicWebsite({ onOpenAuth, onGoToAdmin }) {
           background: 'linear-gradient(135deg, var(--c-brand-deep) 0%, var(--c-brand) 100%)',
           border: '1px solid var(--c-on-dark-line)',
           borderRadius: '24px',
-          boxShadow: '0 20px 50px rgba(8, 42, 48, 0.25)'
+          boxShadow: '0 20px 50px rgba(8, 42, 48, 0.25)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
+          {/* Ambient Decorative Shapes inside Hero Card */}
+          <div aria-hidden="true" style={{
+            position: 'absolute', width: 420, height: 420, borderRadius: '50%', right: -140, top: -180,
+            border: '60px solid rgba(255,122,89,0.14)', pointerEvents: 'none', zIndex: 0
+          }} />
+          <div aria-hidden="true" style={{
+            position: 'absolute', width: 180, height: 180, borderRadius: '50%', right: 160, bottom: -110,
+            backgroundColor: 'rgba(255,255,255,0.04)', pointerEvents: 'none', zIndex: 0
+          }} />
+
           <span style={{ 
             display: 'inline-flex', 
             alignItems: 'center', 
@@ -112,7 +127,9 @@ export default function PublicWebsite({ onOpenAuth, onGoToAdmin }) {
             fontSize: '13px', 
             fontWeight: 700, 
             marginBottom: '24px',
-            border: '1px solid rgba(255, 122, 89, 0.3)'
+            border: '1px solid rgba(255, 122, 89, 0.3)',
+            position: 'relative',
+            zIndex: 1
           }}>
             <Sparkles size={16} /> Automated Daily 9 AM Resume Dispatch Platform
           </span>
@@ -123,17 +140,19 @@ export default function PublicWebsite({ onOpenAuth, onGoToAdmin }) {
             lineHeight: 1.15, 
             letterSpacing: '-1.5px', 
             marginBottom: '20px',
-            color: 'var(--c-on-dark)'
+            color: 'var(--c-on-dark)',
+            position: 'relative',
+            zIndex: 1
           }}>
             Land More Interviews While You Sleep. <br />
             Personalized Resumes Delivered Every Morning.
           </h1>
 
-          <p style={{ fontSize: '17px', color: 'var(--c-on-dark-muted)', maxWidth: '720px', margin: '0 auto 36px auto', lineHeight: 1.65 }}>
+          <p style={{ fontSize: '17px', color: 'var(--c-on-dark-muted)', maxWidth: '720px', margin: '0 auto 36px auto', lineHeight: 1.65, position: 'relative', zIndex: 1 }}>
             Add any recruiter email & job posting to your queue. Our multi-tenant engine automatically aligns your profile with the job's key requirements and delivers your tailored resume and custom PDF directly to employer inboxes every day at 9:00 AM.
           </p>
 
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
             {isAuthenticated ? (
               <button 
                 type="button"

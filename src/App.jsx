@@ -9,6 +9,7 @@ import LogsTab from './pages/admin/LogsTab';
 import SettingsTab from './pages/admin/SettingsTab';
 import CustomResumeTab from './pages/admin/CustomResumeTab';
 import AuthModal from './components/AuthModal';
+import ThemeAmbientBoxes from './components/ThemeAmbientBoxes';
 import { useAuth } from './context/AuthContext';
 import { Send, FileText, History, Settings, Globe, LogOut, UserCheck } from 'lucide-react';
 
@@ -53,7 +54,8 @@ export default function App() {
   // 2. Unauthenticated: ONLY show Public Website (strictly protect all admin UI & data)
   if (!isAuthenticated) {
     return (
-      <>
+      <div style={{ position: 'relative', overflowX: 'hidden' }}>
+        <ThemeAmbientBoxes />
         <PublicWebsite 
           onOpenAuth={() => setIsAuthModalOpen(true)} 
           onGoToAdmin={() => setIsAuthModalOpen(true)} 
@@ -62,7 +64,7 @@ export default function App() {
           isOpen={isAuthModalOpen} 
           onClose={() => setIsAuthModalOpen(false)} 
         />
-      </>
+      </div>
     );
   }
 
@@ -119,8 +121,11 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="main-content">
-        <header className="top-bar">
+      <main className="main-content" style={{ position: 'relative', overflowX: 'hidden' }}>
+        {/* Ambient Theme Background Boxes */}
+        <ThemeAmbientBoxes />
+
+        <header className="top-bar" style={{ position: 'relative', zIndex: 1 }}>
           <div>
             <h1 className="page-title">{title}</h1>
             <p className="page-desc">{desc}</p>
@@ -167,7 +172,7 @@ export default function App() {
           </div>
         </header>
 
-        <div className="page-body">
+        <div className="page-body" style={{ position: 'relative', zIndex: 1 }}>
           {activeTab === 'website' && (
             <PublicWebsite 
               onOpenAuth={() => setIsAuthModalOpen(true)} 
