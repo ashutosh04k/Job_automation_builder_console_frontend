@@ -172,20 +172,22 @@ export default function App() {
           </div>
         </header>
 
-        <div className="page-body" style={{ position: 'relative', zIndex: 1 }}>
-          {activeTab === 'website' && (
-            <PublicWebsite 
-              onOpenAuth={() => setIsAuthModalOpen(true)} 
-              onGoToAdmin={() => setActiveTab('targets')} 
-            />
-          )}
-          {activeTab === 'targets' && <JobTargetTab key={user?.id} />}
-          {activeTab === 'custom-resume' && <CustomResumeTab key={user?.id} />}
-          {activeTab === 'template' && <EmailTemplateTab key={user?.id} />}
-          {activeTab === 'master' && <ResumeMasterTab key={user?.id} />}
-          {activeTab === 'autofill' && <AutoFillManagerTab key={user?.id} />}
-          {activeTab === 'logs' && <LogsTab key={user?.id} />}
-          {activeTab === 'settings' && <SettingsTab key={user?.id} />}
+        <div className="content-scrollable">
+          <div className="page-body">
+            {activeTab === 'website' && (
+              <PublicWebsite 
+                onOpenAuth={() => setIsAuthModalOpen(true)} 
+                onGoToAdmin={() => setActiveTab('targets')} 
+              />
+            )}
+            {activeTab === 'targets' && <JobTargetTab key={user?.id} />}
+            {activeTab === 'custom-resume' && <CustomResumeTab key={user?.id} />}
+            {activeTab === 'template' && <EmailTemplateTab key={user?.id} />}
+            {activeTab === 'master' && <ResumeMasterTab key={user?.id} />}
+            {activeTab === 'autofill' && <AutoFillManagerTab key={user?.id} />}
+            {activeTab === 'logs' && <LogsTab key={user?.id} />}
+            {activeTab === 'settings' && <SettingsTab key={user?.id} />}
+          </div>
         </div>
       </main>
 

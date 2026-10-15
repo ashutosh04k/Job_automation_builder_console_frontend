@@ -169,6 +169,7 @@ export default function CustomResumeTab() {
         border: '1px solid var(--c-on-dark-line)',
         padding: '24px',
         position: 'relative',
+        borderRadius:'20px',
         overflow: 'hidden',
         color: 'var(--c-on-dark)'
       }}>
@@ -265,12 +266,12 @@ export default function CustomResumeTab() {
 
           {/* Company Name */}
           <div className="form-group" style={{ margin: 0 }}>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Building2 size={13} color="var(--c-ink-soft)" /> Target Company Name (Optional)
+            <label className="form-label" style={{ margin: 0 }}>
+              <Building2 size={14} color="var(--c-brand)" /> Target Company Name (Optional)
             </label>
             <input
               type="text"
-              className="input-field"
+              className="form-input"
               placeholder="e.g. Google, Stripe, Uber, Microsoft..."
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
@@ -279,12 +280,12 @@ export default function CustomResumeTab() {
 
           {/* Target Role */}
           <div className="form-group" style={{ margin: 0 }}>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Briefcase size={13} color="var(--c-ink-soft)" /> Target Role / Job Title
+            <label className="form-label" style={{ margin: 0 }}>
+              <Briefcase size={14} color="var(--c-brand)" /> Target Role / Job Title
             </label>
             <input
               type="text"
-              className="input-field"
+              className="form-input"
               placeholder="e.g. Full Stack Developer, Frontend Developer, Backend Engineer..."
               value={targetRole}
               onChange={(e) => setTargetRole(e.target.value)}
@@ -293,21 +294,21 @@ export default function CustomResumeTab() {
 
           {/* Job Description (JD) */}
           <div className="form-group" style={{ margin: 0 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                <FileText size={13} color="var(--c-ink-soft)" /> Target Job Description (JD)
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <label className="form-label" style={{ margin: 0 }}>
+                <FileText size={14} color="var(--c-brand)" /> Target Job Description (JD)
               </label>
               <span style={{ fontSize: '11px', color: 'var(--c-ink-soft)' }}>
                 {jobDescription.length} characters
               </span>
             </div>
             <textarea
-              className="input-field"
+              className="form-textarea"
               rows={9}
               placeholder="Paste the full job requirements, responsibilities, or stack here... The ATS engine will automatically scan keywords and tailor your resume's experience and skills accordingly."
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
-              style={{ resize: 'vertical', lineHeight: '1.4', fontFamily: 'inherit' }}
+              style={{ resize: 'vertical', lineHeight: '1.45', fontFamily: 'inherit' }}
             />
           </div>
 

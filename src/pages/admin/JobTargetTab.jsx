@@ -16,11 +16,16 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Loader2
 } from 'lucide-react';
 import { apiUrl, authFetch } from '../../config/api';
 
 export default function JobTargetTab() {
+  // Accordion open/close states (top closed by default, bottom open by default)
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isTableOpen, setIsTableOpen] = useState(true);
+
   // 2 Core Input Boxes + metadata state
   const [email, setEmail] = useState('');
   const [jobDescription, setJobDescription] = useState('');
@@ -287,101 +292,148 @@ export default function JobTargetTab() {
 
       {/* Primary Section: 2 Input Box Form for Admin Panel */}
       <div class="glass-card" style={{ border: '1px solid var(--border-highlight)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <div>
+        <div 
+          onClick={() => setIsFormOpen(!isFormOpen)}
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            cursor: 'pointer',
+            userSelect: 'none',
+            marginBottom: isFormOpen ? '16px' : 0 
+          }}
+        >
+          <div style={{ flex: 1 }}>
             <h2 class="card-header-title">
               <Sparkles size={20} color="var(--c-accent)" /> Daily 9 AM Resume Target Automation Form
             </h2>
-            <p class="card-subtitle">
+            <p class="card-subtitle" style={{ marginBottom: 0 }}>
               Enter target email and job description. Backend cron job will customize your resume and email it daily at 9:00 AM.
             </p>
           </div>
-          <button class="btn btn-secondary btn-sm" onClick={handleTriggerAllCron}>
-            <Clock size={14} color="var(--c-brand)" /> Run 9 AM Cron Now
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button 
+              class="btn btn-secondary btn-sm" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTriggerAllCron();
+              }}
+            >
+              <Clock size={14} color="var(--c-brand)" /> Run 9 AM Cron Now
+            </button>
+            <div 
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: 'rgba(0, 0, 0, 0.04)',
+                transform: isFormOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.25s ease'
+              }}
+            >
+              <ChevronDown size={18} color="var(--c-ink-soft)" />
+            </div>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} class="form-grid">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            {/* Input Box 1: Email */}
+        {isFormOpen && (
+          <form onSubmit={handleSubmit} class="form-grid" style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--c-line)' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              {/* Input Box 1: Email */}
+              <div class="form-group">
+                <label class="form-label">
+                  <Mail size={15} color="var(--c-brand)" /> Recipient Email Address *
+                </label>
+                <input
+                  type="email"
+                  class="form-input"
+                  placeholder="e.g. recruiter@company.com or your_email@gmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* Target Role / Company */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div class="form-group">
+                  <label class="form-label">
+                    <Briefcase size={15} color="var(--c-brand)" /> Target Role Title
+                  </label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    placeholder="e.g. Senior Frontend Lead"
+                    value={targetRole}
+                    onChange={(e) => setTargetRole(e.target.value)}
+                  />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    <Building size={15} color="var(--c-brand)" /> Company Name
+                  </label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    placeholder="e.g. Acme Corp"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Input Box 2: Job Description */}
             <div class="form-group">
-              <label class="form-label">
-                <Mail size={15} color="var(--c-brand)" /> Recipient Email Address *
-              </label>
-              <input
-                type="email"
-                class="form-input"
-                placeholder="e.g. recruiter@company.com or your_email@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
-            {/* Target Role / Company */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              <div class="form-group">
-                <label class="form-label">
-                  <Briefcase size={15} color="var(--c-brand)" /> Target Role Title
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label class="form-label" style={{ marginBottom: 0 }}>
+                  <FileText size={15} color="var(--c-brand)" /> Target Job Description
                 </label>
-                <input
-                  type="text"
-                  class="form-input"
-                  placeholder="e.g. Senior Frontend Lead"
-                  value={targetRole}
-                  onChange={(e) => setTargetRole(e.target.value)}
-                />
+                <span style={{ fontSize: '11px', color: 'var(--c-ink-soft)' }}>Optional</span>
               </div>
-
-              <div class="form-group">
-                <label class="form-label">
-                  <Building size={15} color="var(--c-brand)" /> Company Name
-                </label>
-                <input
-                  type="text"
-                  class="form-input"
-                  placeholder="e.g. Acme Corp"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                />
-              </div>
+              <textarea
+                class="form-textarea"
+                placeholder="Paste full job description requirements here (optional: skills, tech stack, responsibilities)... If left blank, your default master resume pitch will be used."
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+              ></textarea>
             </div>
-          </div>
 
-          {/* Input Box 2: Job Description */}
-          <div class="form-group">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label class="form-label" style={{ marginBottom: 0 }}>
-                <FileText size={15} color="var(--c-brand)" /> Target Job Description
-              </label>
-              <span style={{ fontSize: '11px', color: 'var(--c-ink-soft)' }}>Optional</span>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onClick={() => handlePreviewResume(jobDescription, targetRole, companyName)}
+              >
+                <Eye size={16} /> Preview Modified Resume
+              </button>
+              <button type="submit" class="btn btn-primary" disabled={submitting}>
+                <Send size={16} /> {submitting ? 'Saving to Backend...' : 'Save Target & Schedule Daily 9 AM Mail'}
+              </button>
             </div>
-            <textarea
-              class="form-textarea"
-              placeholder="Paste full job description requirements here (optional: skills, tech stack, responsibilities)... If left blank, your default master resume pitch will be used."
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-            ></textarea>
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-            <button
-              type="button"
-              class="btn btn-secondary"
-              onClick={() => handlePreviewResume(jobDescription, targetRole, companyName)}
-            >
-              <Eye size={16} /> Preview Modified Resume
-            </button>
-            <button type="submit" class="btn btn-primary" disabled={submitting}>
-              <Send size={16} /> {submitting ? 'Saving to Backend...' : 'Save Target & Schedule Daily 9 AM Mail'}
-            </button>
-          </div>
-        </form>
+          </form>
+        )}
       </div>
 
       {/* Target Entries Data Table with Pagination & Search Controls */}
       <div class="glass-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+        <div 
+          onClick={() => setIsTableOpen(!isTableOpen)}
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            cursor: 'pointer',
+            userSelect: 'none',
+            marginBottom: isTableOpen ? '20px' : 0, 
+            flexWrap: 'wrap', 
+            gap: '16px' 
+          }}
+        >
           <div>
             <h3 class="card-header-title">
               <Mail size={18} color="#34d399" /> Saved Automation Entries ({paginationInfo.total})
@@ -391,46 +443,70 @@ export default function JobTargetTab() {
             </p>
           </div>
 
-          {/* Search Input & Limit Selector Bar */}
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', width: '220px' }}>
-              <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-              <input
-                type="text"
-                class="form-input"
-                placeholder="Search targets..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setPage(1);
-                }}
-                style={{ paddingLeft: '34px', paddingRight: '12px', height: '38px', fontSize: '13px' }}
-              />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            {/* Search Input & Limit Selector Bar */}
+            <div 
+              style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }} 
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ position: 'relative', width: '220px' }}>
+                <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <input
+                  type="text"
+                  class="form-input"
+                  placeholder="Search targets..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                  style={{ paddingLeft: '34px', paddingRight: '12px', height: '38px', fontSize: '13px' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>Per page:</span>
+                <select
+                  class="form-select"
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setPage(1);
+                  }}
+                  style={{ width: '70px', height: '38px', padding: '4px 8px', fontSize: '13px' }}
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+
+              <button class="btn btn-secondary btn-sm" onClick={() => fetchTargets(page, limit, search)} disabled={loading} style={{ height: '38px' }}>
+                Refresh
+              </button>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '12px', color: '#94a3b8' }}>Per page:</span>
-              <select
-                class="form-select"
-                value={limit}
-                onChange={(e) => {
-                  setLimit(Number(e.target.value));
-                  setPage(1);
-                }}
-                style={{ width: '70px', height: '38px', padding: '4px 8px', fontSize: '13px' }}
-              >
-                <option value={5}>5</option>
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </select>
+            <div 
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                width: '32px',
+                height: '32px',
+                borderRadius: '8px',
+                background: 'rgba(0, 0, 0, 0.04)',
+                transform: isTableOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.25s ease'
+              }}
+            >
+              <ChevronDown size={18} color="var(--c-ink-soft)" />
             </div>
-
-            <button class="btn btn-secondary btn-sm" onClick={() => fetchTargets(page, limit, search)} disabled={loading} style={{ height: '38px' }}>
-              Refresh
-            </button>
           </div>
         </div>
+
+        {isTableOpen && (
+          <div style={{ marginTop: '4px', paddingTop: '16px', borderTop: '1px solid var(--c-line)' }}>
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>Loading targets...</div>
@@ -462,7 +538,7 @@ export default function JobTargetTab() {
                   {targets.map((target) => (
                     <tr key={target._id}>
                       <td>
-                        <div style={{ fontWeight: 700, color: '#f8fafc' }}>{target.email}</div>
+                        <div style={{ fontWeight: 700, color: '#757575ff' }}>{target.email}</div>
                         <div style={{ fontSize: '11px', color: '#64748b' }}>
                           Created: {new Date(target.createdAt).toLocaleDateString()}
                         </div>
@@ -480,7 +556,7 @@ export default function JobTargetTab() {
                           overflow: 'hidden', 
                           textOverflow: 'ellipsis', 
                           fontSize: '13px', 
-                          color: '#cbd5e1' 
+                          color: '#464747ff' 
                         }}>
                           {target.jobDescription ? (
                             target.jobDescription
@@ -670,7 +746,7 @@ export default function JobTargetTab() {
               gap: '12px'
             }}>
               <div style={{ fontSize: '13px', color: '#94a3b8' }}>
-                Showing <strong style={{ color: '#f8fafc' }}>{startEntryIndex}</strong> to <strong style={{ color: '#f8fafc' }}>{endEntryIndex}</strong> of <strong style={{ color: '#38bdf8' }}>{paginationInfo.total}</strong> entries
+                Showing <strong style={{ color: '#606264ff' }}>{startEntryIndex}</strong> to <strong style={{ color: '#606264ff' }}>{endEntryIndex}</strong> of <strong style={{ color: '#38bdf8' }}>{paginationInfo.total}</strong> entries
               </div>
 
               <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
@@ -712,6 +788,8 @@ export default function JobTargetTab() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
           </div>
         )}
       </div>

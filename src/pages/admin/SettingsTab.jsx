@@ -101,7 +101,7 @@ export default function SettingsTab() {
 
       {/* Gmail / SMTP Instructions Banner */}
       <div class="glass-card" style={{ borderLeft: '4px solid var(--accent-primary)', background: 'rgba(15, 23, 42, 0.9)' }}>
-        <h3 class="card-header-title">
+        <h3 class="card-header-title" style={{ color: 'white' }}>
           <ShieldAlert size={18} color="#38bdf8" /> Email Permission & SMTP Configuration Guide
         </h3>
         <p style={{ fontSize: '13.5px', color: '#94a3b8', marginTop: '6px', lineHeight: 1.6 }}>
