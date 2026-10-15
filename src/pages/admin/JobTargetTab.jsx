@@ -23,6 +23,33 @@ import {
 } from 'lucide-react';
 import { apiUrl, authFetch } from '../../config/api';
 
+// Candidate Skills Dictionary for ATS Scoring
+const CANDIDATE_ATS_SKILLS = [
+  'react', 'react.js', 'next.js', 'nextjs', 'typescript', 'javascript', 'node', 'node.js',
+  'express', 'mongodb', 'sql', 'postgres', 'postgresql', 'mysql', 'aws', 'docker', 'kubernetes',
+  'redux', 'rtk query', 'tailwind', 'material ui', 'websockets', 'firebase', 'stripe', 'payment',
+  'ci/cd', 'github actions', 'nginx', 'graphql', 'rest api', 'microservices', 'seo', 'crm',
+  'llm', 'ai', 'langchain', 'jest', 'cypress', 'performance', 'virtualization', 'memoization',
+  'rbac', 'push notification', 'google maps', 'tracking', 'order', 'ecommerce', 'e-commerce',
+  'saas', 'python', 'java', 'frontend', 'backend', 'full stack', 'cloud', 'architecture'
+];
+
+export function computeAtsScore(target) {
+  if (target?.atsScore && typeof target.atsScore === 'number') {
+    return target.atsScore;
+  }
+  const jd = (target?.jobDescription || '').toLowerCase();
+  const role = (target?.targetRole || '').toLowerCase();
+  const text = `${role} ${jd}`;
+  if (!text.trim()) return 86;
+
+  let matches = 0;
+  for (const skill of CANDIDATE_ATS_SKILLS) {
+    if (text.includes(skill)) matches++;
+  }
+  return Math.min(98, 82 + Math.min(16, matches * 2));
+}
+
 export default function JobTargetTab() {
   // Accordion open/close states (top closed by default, bottom open by default)
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -586,6 +613,7 @@ export default function JobTargetTab() {
                     <th>Cron Schedule</th>
                     <th>Status</th>
                     <th>Total Sent</th>
+                    <th>ATS Score</th>
                     <th>Email Opens</th>
                     <th style={{ textAlign: 'center' }}>Actions</th>
                   </tr>
@@ -643,12 +671,43 @@ export default function JobTargetTab() {
                       </td>
 
                       <td>
-                        <div style={{ fontWeight: 700,whiteSpace:'nowrap' }}>{target.totalSentCount || 0} times</div>
+                        <div style={{ fontWeight: 700, whiteSpace: 'nowrap', color: 'var(--c-ink)' }}>{target.totalSentCount || 0} times</div>
                         {target.lastSentAt && (
-                          <div style={{ fontSize: '11px', color: '#64748b',whiteSpace:'nowrap' }}>
+                          <div style={{ fontSize: '11px', color: 'var(--c-ink-soft)', whiteSpace: 'nowrap' }}>
                             Last: {new Date(target.lastSentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                         )}
+                      </td>
+
+                      {/* ATS Score Column next to Total Sent */}
+                      <td>
+                        {(() => {
+                          const score = computeAtsScore(target);
+                          const isHigh = score >= 90;
+                          const isStrong = score >= 80;
+                          return (
+                            <div>
+                              <div style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                padding: '3px 8px',
+                                borderRadius: '6px',
+                                background: isHigh ? 'var(--c-go-soft)' : isStrong ? 'rgba(56, 189, 248, 0.15)' : 'var(--c-accent-soft)',
+                                color: isHigh ? 'var(--c-go)' : isStrong ? '#0284c7' : 'var(--c-accent)',
+                                border: `1px solid ${isHigh ? 'rgba(31, 157, 97, 0.3)' : isStrong ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255, 122, 89, 0.3)'}`,
+                                fontWeight: 800,
+                                fontSize: '12px',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                <Sparkles size={12} /> {score}%
+                              </div>
+                              <div style={{ fontSize: '11px', color: 'var(--c-ink-soft)', marginTop: '3px', whiteSpace: 'nowrap' }}>
+                                {isHigh ? 'High Match' : isStrong ? 'Strong Match' : 'Good Match'}
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </td>
 
                       <td>
@@ -876,11 +935,27 @@ export default function JobTargetTab() {
                   <FileText size={20} color="var(--c-accent)" /> Algorithm-Tailored ATS Resume Preview
                 </h3>
                 {pdfModalTarget && (
-                  <p style={{ fontSize: '13px', color: 'var(--c-ink-soft)', margin: '4px 0 0 0' }}>
-                    Target: <strong style={{ color: 'var(--c-ink)' }}>{pdfModalTarget.targetRole || 'Software Developer'}</strong>
-                    {pdfModalTarget.companyName && <span> at <strong style={{ color: 'var(--c-ink)' }}>{pdfModalTarget.companyName}</strong></span>}
-                    {' '}&bull; <span style={{ color: 'var(--c-accent)' }}>{pdfModalTarget.email}</span>
-                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', flexWrap: 'wrap' }}>
+                    <p style={{ fontSize: '13px', color: 'var(--c-ink-soft)', margin: 0 }}>
+                      Target: <strong style={{ color: 'var(--c-ink)' }}>{pdfModalTarget.targetRole || 'Software Developer'}</strong>
+                      {pdfModalTarget.companyName && <span> at <strong style={{ color: 'var(--c-ink)' }}>{pdfModalTarget.companyName}</strong></span>}
+                      {' '}&bull; <span style={{ color: 'var(--c-accent)' }}>{pdfModalTarget.email}</span>
+                    </p>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '2px 8px',
+                      borderRadius: '5px',
+                      background: computeAtsScore(pdfModalTarget) >= 90 ? 'var(--c-go-soft)' : 'rgba(56, 189, 248, 0.15)',
+                      color: computeAtsScore(pdfModalTarget) >= 90 ? 'var(--c-go)' : '#0284c7',
+                      border: `1px solid ${computeAtsScore(pdfModalTarget) >= 90 ? 'rgba(31, 157, 97, 0.3)' : 'rgba(56, 189, 248, 0.3)'}`,
+                      fontWeight: 800,
+                      fontSize: '11px'
+                    }}>
+                      <Sparkles size={11} /> ATS Score: {computeAtsScore(pdfModalTarget)}%
+                    </span>
+                  </div>
                 )}
               </div>
 
