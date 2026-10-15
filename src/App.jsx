@@ -8,6 +8,7 @@ import AutoFillManagerTab from './pages/admin/AutoFillManagerTab';
 import LogsTab from './pages/admin/LogsTab';
 import SettingsTab from './pages/admin/SettingsTab';
 import CustomResumeTab from './pages/admin/CustomResumeTab';
+import LinkedInDiscoveryTab from './pages/admin/LinkedInDiscoveryTab';
 import AuthModal from './components/AuthModal';
 import ThemeAmbientBoxes from './components/ThemeAmbientBoxes';
 import { useAuth } from './context/AuthContext';
@@ -73,6 +74,11 @@ export default function App() {
     switch (activeTab) {
       case 'website':
         return { title: 'AutoResume Platform', desc: 'Public website preview & features' };
+      case 'linkedin-discovery':
+        return { 
+          title: `LinkedIn Discovery & Scraper (${user?.name})`, 
+          desc: 'Filter Easy Apply vs External apply jobs extracted from LinkedIn search results' 
+        };
       case 'targets':
         return { 
           title: `Job Target Automation (${user?.name}'s Workspace)`, 
@@ -180,6 +186,7 @@ export default function App() {
                 onGoToAdmin={() => setActiveTab('targets')} 
               />
             )}
+            {activeTab === 'linkedin-discovery' && <LinkedInDiscoveryTab key={user?.id} />}
             {activeTab === 'targets' && <JobTargetTab key={user?.id} />}
             {activeTab === 'custom-resume' && <CustomResumeTab key={user?.id} />}
             {activeTab === 'template' && <EmailTemplateTab key={user?.id} />}

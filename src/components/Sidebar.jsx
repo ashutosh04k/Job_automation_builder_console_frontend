@@ -13,7 +13,8 @@ import {
   LogOut,
   User,
   Mail,
-  Sparkles
+  Sparkles,
+  Compass
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -22,6 +23,7 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
 
   const menuItems = [
     { id: 'website', label: 'Public Website', icon: Globe },
+    { id: 'linkedin-discovery', label: 'LinkedIn Discovery', icon: Compass, badge: 'Scraper' },
     { id: 'targets', label: 'Job Target Automation', icon: Send, badge: 'Core' },
     { id: 'custom-resume', label: 'ATS Resume Builder', icon: Sparkles, badge: 'Tailor' },
     { id: 'template', label: 'Email Pitch & Message', icon: Mail, badge: 'Pitch' },
