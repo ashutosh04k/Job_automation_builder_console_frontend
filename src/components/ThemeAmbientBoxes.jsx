@@ -82,6 +82,48 @@ export default function ThemeAmbientBoxes({ style = {}, isFixed = true }) {
         aria-hidden="true"
         style={{
           position: 'absolute',
+          width: 420,
+          height: 420,
+          borderRadius: '50%',
+          right: 500,
+          top: 470,
+          border: '60px solid rgba(255, 122, 89, 0.14)',
+          pointerEvents: 'none',
+          ...style.box1
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          width: 180,
+          height: 180,
+          borderRadius: '50%',
+          right: 600,
+          top: 200,
+          backgroundColor: 'rgba(229, 169, 41, 0.10)',
+          pointerEvents: 'none',
+          ...style.box2
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          width: 180,
+          height: 180,
+          borderRadius: '50%',
+          right: 600,
+          top: 600,
+          backgroundColor: 'rgba(154, 149, 250, 0.1)',
+          pointerEvents: 'none',
+          ...style.box2
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
           width: 180,
           height: 180,
           borderRadius: '50%',
