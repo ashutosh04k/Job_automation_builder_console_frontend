@@ -17,7 +17,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Loader2
+  Loader2,
+  Download,
+  ExternalLink
 } from 'lucide-react';
 import { apiUrl, authFetch } from '../../config/api';
 
@@ -50,10 +52,16 @@ export default function JobTargetTab() {
     hasNextPage: false
   });
 
-  // Preview modal state
+  // HTML Preview modal state
   const [previewData, setPreviewData] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
+
+  // ATS Tailored PDF Preview Modal state
+  const [pdfModalOpen, setPdfModalOpen] = useState(false);
+  const [pdfModalUrl, setPdfModalUrl] = useState(null);
+  const [pdfModalLoading, setPdfModalLoading] = useState(false);
+  const [pdfModalTarget, setPdfModalTarget] = useState(null);
 
   // Fetch targets when page, limit, or search changes
   useEffect(() => {
@@ -230,6 +238,53 @@ export default function JobTargetTab() {
     } finally {
       setPreviewLoading(false);
     }
+  };
+
+  // Open Algorithm-Tailored ATS PDF Resume in Modal
+  const handleOpenPdfPreview = async (target) => {
+    setPdfModalTarget(target);
+    setPdfModalOpen(true);
+    setPdfModalLoading(true);
+    if (pdfModalUrl) {
+      window.URL.revokeObjectURL(pdfModalUrl);
+      setPdfModalUrl(null);
+    }
+    try {
+      showNotification('success', '⏳ Compiling ATS tailored PDF resume preview...');
+      const res = await authFetch(apiUrl(`/api/resume/tailored-pdf/${target._id}`));
+      if (!res.ok) throw new Error('Failed to generate tailored PDF preview');
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      setPdfModalUrl(url);
+    } catch (err) {
+      showNotification('error', err.message || 'Error generating PDF preview');
+    } finally {
+      setPdfModalLoading(false);
+    }
+  };
+
+  // Close Tailored PDF Preview Modal
+  const handleClosePdfModal = () => {
+    setPdfModalOpen(false);
+    if (pdfModalUrl) {
+      window.URL.revokeObjectURL(pdfModalUrl);
+      setPdfModalUrl(null);
+    }
+    setPdfModalTarget(null);
+  };
+
+  // Download PDF from inside Preview Modal
+  const handleDownloadFromPdfModal = () => {
+    if (!pdfModalUrl || !pdfModalTarget) return;
+    const a = document.createElement('a');
+    a.href = pdfModalUrl;
+    const cleanRole = (pdfModalTarget.targetRole || 'Resume').replace(/[^a-zA-Z0-9_-]/g, '_');
+    const cleanCompany = pdfModalTarget.companyName ? `_${pdfModalTarget.companyName.replace(/[^a-zA-Z0-9_-]/g, '_')}` : '';
+    a.download = `Ashutosh_Kumar_${cleanRole}${cleanCompany}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showNotification('success', '📄 ATS Tailored Resume PDF downloaded!');
   };
 
   // Download Tailored PDF for a stored target
@@ -695,20 +750,22 @@ export default function JobTargetTab() {
                           })()}
 
                           <button
-                            class="btn btn-secondary btn-sm"
-                            onClick={() => handlePreviewResume(target.jobDescription, target.targetRole, target.companyName)}
-                            title="Preview tailored HTML pitch"
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            style={{ color: 'var(--c-accent)', borderColor: 'rgba(255,122,89,0.35)', padding: '4px 10px', gap: '5px', display: 'inline-flex', alignItems: 'center', fontWeight: 600 }}
+                            onClick={() => handleOpenPdfPreview(target)}
+                            title="Preview algorithm-tailored ATS PDF resume in modal"
                           >
-                            <Eye size={12} />
+                            <Eye size={13} color="var(--c-accent)" /> Preview PDF
                           </button>
 
                           <button
-                            class="btn btn-secondary btn-sm"
-                            style={{ color: '#38bdf8', borderColor: 'rgba(56,189,248,0.35)', padding: '4px 8px', gap: '4px' }}
-                            onClick={() => handleDownloadTailoredPdf(target._id, target.targetRole)}
-                            title="Download Dynamic ATS Tailored PDF Resume for this job"
+                            type="button"
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => handlePreviewResume(target.jobDescription, target.targetRole, target.companyName)}
+                            title="Preview tailored email message & pitch"
                           >
-                            <FileText size={12} /> PDF
+                            <Mail size={12} /> Email Pitch
                           </button>
 
                           <button
@@ -793,6 +850,95 @@ export default function JobTargetTab() {
           </div>
         )}
       </div>
+
+      {/* ATS Tailored PDF Preview Modal */}
+      {pdfModalOpen && (
+        <div className="modal-overlay" onClick={handleClosePdfModal}>
+          <div 
+            className="modal-content" 
+            style={{ 
+              maxWidth: '920px', 
+              width: '94vw', 
+              maxHeight: '92vh', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              padding: '24px',
+              position: 'relative',
+              overflow: 'hidden'
+            }} 
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--c-ink)', margin: 0 }}>
+                  <FileText size={20} color="var(--c-accent)" /> Algorithm-Tailored ATS Resume Preview
+                </h3>
+                {pdfModalTarget && (
+                  <p style={{ fontSize: '13px', color: 'var(--c-ink-soft)', margin: '4px 0 0 0' }}>
+                    Target: <strong style={{ color: 'var(--c-ink)' }}>{pdfModalTarget.targetRole || 'Software Developer'}</strong>
+                    {pdfModalTarget.companyName && <span> at <strong style={{ color: 'var(--c-ink)' }}>{pdfModalTarget.companyName}</strong></span>}
+                    {' '}&bull; <span style={{ color: 'var(--c-accent)' }}>{pdfModalTarget.email}</span>
+                  </p>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                {pdfModalUrl && (
+                  <>
+                    <a
+                      href={pdfModalUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn btn-secondary btn-sm"
+                      style={{ gap: '6px' }}
+                    >
+                      <ExternalLink size={14} /> Open in Tab
+                    </a>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={handleDownloadFromPdfModal}
+                      style={{ gap: '6px' }}
+                    >
+                      <Download size={14} /> Download PDF
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleClosePdfModal}
+                  style={{ padding: '6px 12px' }}
+                >
+                  ✕ Close
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body: PDF View */}
+            <div style={{ flex: 1, minHeight: '580px', height: '70vh', background: 'var(--c-surface-alt)', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--c-line)', position: 'relative' }}>
+              {pdfModalLoading ? (
+                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', color: 'var(--c-ink-soft)' }}>
+                  <div className="pulse-dot" style={{ width: '12px', height: '12px' }}></div>
+                  <div style={{ fontWeight: 600, color: 'var(--c-ink)' }}>Compiling algorithm-tailored ATS PDF resume...</div>
+                  <div style={{ fontSize: '12px', color: 'var(--c-ink-soft)' }}>Reordering bullet points, prioritizing relevant skills, and compiling LaTeX template</div>
+                </div>
+              ) : pdfModalUrl ? (
+                <iframe
+                  title="Tailored Resume PDF Preview"
+                  src={pdfModalUrl}
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                />
+              ) : (
+                <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-error)' }}>
+                  Failed to load PDF preview.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Resume Live HTML Preview Modal */}
       {showPreviewModal && (
