@@ -253,8 +253,9 @@ export default function JobTargetTab() {
       showNotification('success', '⏳ Compiling ATS tailored PDF resume preview...');
       const res = await authFetch(apiUrl(`/api/resume/tailored-pdf/${target._id}`));
       if (!res.ok) throw new Error('Failed to generate tailored PDF preview');
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
+      const rawBlob = await res.blob();
+      const pdfBlob = new Blob([rawBlob], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(pdfBlob);
       setPdfModalUrl(url);
     } catch (err) {
       showNotification('error', err.message || 'Error generating PDF preview');
@@ -857,9 +858,9 @@ export default function JobTargetTab() {
           <div 
             className="modal-content" 
             style={{ 
-              maxWidth: '920px', 
+              maxWidth: '960px', 
               width: '94vw', 
-              maxHeight: '92vh', 
+              maxHeight: '94vh', 
               display: 'flex', 
               flexDirection: 'column', 
               padding: '24px',
@@ -869,7 +870,7 @@ export default function JobTargetTab() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '12px', flexShrink: 0 }}>
               <div>
                 <h3 style={{ fontSize: '18px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--c-ink)', margin: 0 }}>
                   <FileText size={20} color="var(--c-accent)" /> Algorithm-Tailored ATS Resume Preview
@@ -916,19 +917,37 @@ export default function JobTargetTab() {
               </div>
             </div>
 
-            {/* Modal Body: PDF View */}
-            <div style={{ flex: 1, minHeight: '580px', height: '70vh', background: 'var(--c-surface-alt)', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--c-line)', position: 'relative' }}>
+            {/* Modal Body: Full-height PDF Viewer */}
+            <div style={{ 
+              width: '100%', 
+              height: 'calc(94vh - 120px)', 
+              minHeight: '620px', 
+              borderRadius: '10px', 
+              overflow: 'hidden', 
+              border: '1px solid rgba(100, 116, 139, 0.25)', 
+              background: '#1e293b', 
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
               {pdfModalLoading ? (
-                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', color: 'var(--c-ink-soft)' }}>
+                <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', color: '#94a3b8' }}>
                   <div className="pulse-dot" style={{ width: '12px', height: '12px' }}></div>
-                  <div style={{ fontWeight: 600, color: 'var(--c-ink)' }}>Compiling algorithm-tailored ATS PDF resume...</div>
-                  <div style={{ fontSize: '12px', color: 'var(--c-ink-soft)' }}>Reordering bullet points, prioritizing relevant skills, and compiling LaTeX template</div>
+                  <div style={{ fontWeight: 600, color: '#f8fafc' }}>Compiling algorithm-tailored ATS PDF resume...</div>
+                  <div style={{ fontSize: '12px', color: '#94a3b8' }}>Reordering bullet points, prioritizing relevant skills, and compiling LaTeX template</div>
                 </div>
               ) : pdfModalUrl ? (
                 <iframe
                   title="Tailored Resume PDF Preview"
                   src={pdfModalUrl}
-                  style={{ width: '100%', height: '100%', border: 'none' }}
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    flex: 1,
+                    minHeight: '620px', 
+                    display: 'block', 
+                    border: 'none' 
+                  }}
                 />
               ) : (
                 <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-error)' }}>
