@@ -38,8 +38,8 @@ export default function App() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'var(--bg-dark)',
-        color: '#38bdf8',
+        background: 'var(--c-page)',
+        color: 'var(--c-brand)',
         fontSize: '16px',
         fontWeight: 600,
         gap: '12px'

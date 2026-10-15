@@ -290,14 +290,14 @@ export default function JobTargetTab() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <div>
             <h2 class="card-header-title">
-              <Sparkles size={20} color="#38bdf8" /> Daily 9 AM Resume Target Automation Form
+              <Sparkles size={20} color="var(--c-accent)" /> Daily 9 AM Resume Target Automation Form
             </h2>
             <p class="card-subtitle">
               Enter target email and job description. Backend cron job will customize your resume and email it daily at 9:00 AM.
             </p>
           </div>
           <button class="btn btn-secondary btn-sm" onClick={handleTriggerAllCron}>
-            <Clock size={14} color="#38bdf8" /> Run 9 AM Cron Now
+            <Clock size={14} color="var(--c-brand)" /> Run 9 AM Cron Now
           </button>
         </div>
 
@@ -306,7 +306,7 @@ export default function JobTargetTab() {
             {/* Input Box 1: Email */}
             <div class="form-group">
               <label class="form-label">
-                <Mail size={15} color="#38bdf8" /> Recipient Email Address *
+                <Mail size={15} color="var(--c-brand)" /> Recipient Email Address *
               </label>
               <input
                 type="email"
@@ -322,7 +322,7 @@ export default function JobTargetTab() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div class="form-group">
                 <label class="form-label">
-                  <Briefcase size={15} color="#818cf8" /> Target Role Title
+                  <Briefcase size={15} color="var(--c-brand)" /> Target Role Title
                 </label>
                 <input
                   type="text"
@@ -335,7 +335,7 @@ export default function JobTargetTab() {
 
               <div class="form-group">
                 <label class="form-label">
-                  <Building size={15} color="#34d399" /> Company Name
+                  <Building size={15} color="var(--c-brand)" /> Company Name
                 </label>
                 <input
                   type="text"
@@ -352,9 +352,9 @@ export default function JobTargetTab() {
           <div class="form-group">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
               <label class="form-label" style={{ marginBottom: 0 }}>
-                <FileText size={15} color="#38bdf8" /> Target Job Description
+                <FileText size={15} color="var(--c-brand)" /> Target Job Description
               </label>
-              <span style={{ fontSize: '11px', color: '#94a3b8' }}>Optional</span>
+              <span style={{ fontSize: '11px', color: 'var(--c-ink-soft)' }}>Optional</span>
             </div>
             <textarea
               class="form-textarea"

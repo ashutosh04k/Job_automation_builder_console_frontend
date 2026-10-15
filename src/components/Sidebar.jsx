@@ -105,8 +105,8 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                background: 'linear-gradient(135deg, #38bdf8, #818cf8)',
-                color: '#0f172a',
+                background: 'var(--c-accent)',
+                color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -122,8 +122,8 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
             </div>
           ) : (
             <div style={{
-              background: 'rgba(15, 23, 42, 0.7)',
-              border: '1px solid var(--border-color)',
+              background: 'var(--c-brand)',
+              border: '1px solid var(--c-on-dark-line)',
               borderRadius: 'var(--radius-md)',
               padding: '10px 12px',
               display: 'flex',
@@ -136,8 +136,8 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
                   width: '34px',
                   height: '34px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #38bdf8, #818cf8)',
-                  color: '#0f172a',
+                  background: 'var(--c-accent)',
+                  color: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -148,10 +148,10 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
                   {getInitials(user.name)}
                 </div>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--c-on-dark)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {user.name}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--c-on-dark-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     {user.email}
                   </div>
                 </div>
@@ -162,7 +162,7 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
                 onClick={logout}
                 title="Log Out"
                 className="btn btn-secondary btn-sm"
-                style={{ padding: '6px', borderRadius: '6px', border: 'none', color: '#fb7185' }}
+                style={{ padding: '6px', borderRadius: '6px', border: 'none', color: 'var(--c-accent)' }}
               >
                 <LogOut size={14} />
               </button>
@@ -178,9 +178,9 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                background: 'rgba(56, 189, 248, 0.15)',
-                border: '1px solid rgba(56, 189, 248, 0.3)',
-                color: '#38bdf8',
+                background: 'rgba(255, 122, 89, 0.15)',
+                border: '1px solid var(--c-accent)',
+                color: 'var(--c-accent)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -209,16 +209,16 @@ export default function Sidebar({ activeTab, setActiveTab, isCollapsed, setIsCol
             title="9:00 AM Daily Cron Active (Scheduled Auto Dispatch)"
           >
             <div className="pulse-dot"></div>
-            <Clock size={14} color="#38bdf8" />
+            <Clock size={14} color="var(--c-accent)" />
           </div>
         ) : (
           <div className="cron-badge-card">
             <div className="pulse-dot"></div>
             <div>
-              <div style={{ fontSize: '12px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Clock size={12} color="#38bdf8" /> 9:00 AM Cron Active
+              <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--c-on-dark)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Clock size={12} color="var(--c-accent)" /> 9:00 AM Cron Active
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b' }}>Scheduled Auto Dispatch</div>
+              <div style={{ fontSize: '11px', color: 'var(--c-on-dark-muted)' }}>Scheduled Auto Dispatch</div>
             </div>
           </div>
         )}

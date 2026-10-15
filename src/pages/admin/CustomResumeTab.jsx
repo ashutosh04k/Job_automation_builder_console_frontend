@@ -171,10 +171,10 @@ export default function CustomResumeTab() {
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap' }}>
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Sparkles size={22} color="#38bdf8" /> ATS Resume Tailor & Builder
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Sparkles size={22} color="var(--c-accent)" /> ATS Resume Tailor & Builder
             </h2>
-            <p style={{ color: '#94a3b8', fontSize: '13px', marginTop: '6px', maxWidth: '680px', lineHeight: '1.5' }}>
+            <p style={{ color: 'var(--c-ink-soft)', fontSize: '13px', marginTop: '6px', maxWidth: '680px', lineHeight: '1.5' }}>
               Generate custom, 1-page ATS-optimized resumes formatted to your exact LaTeX layout.
               Input the target company, role, and job description to dynamically highlight and prioritize relevant experience, skills, and projects.
             </p>
@@ -195,7 +195,6 @@ export default function CustomResumeTab() {
               className="btn btn-secondary btn-sm"
               onClick={handlePreviewPdf}
               disabled={loading || previewLoading}
-              style={{ color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.4)' }}
             >
               <Eye size={14} /> {previewLoading ? 'Compiling...' : 'Live Preview'}
             </button>
@@ -213,7 +212,7 @@ export default function CustomResumeTab() {
 
         {/* Quick Role Presets */}
         <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Quick Role Presets:</span>
+          <span style={{ fontSize: '12px', color: 'var(--c-ink-soft)', fontWeight: 600 }}>Quick Role Presets:</span>
           {[
             { label: 'Full Stack Developer', role: 'Full Stack Developer', jd: 'React.js, Node.js, TypeScript, AWS, MongoDB, Docker, REST APIs' },
             { label: 'Frontend Developer', role: 'Frontend Developer', jd: 'React.js, Next.js, TypeScript, Redux, RTK Query, Tailwind CSS, Performance' },
@@ -228,10 +227,11 @@ export default function CustomResumeTab() {
                 fontSize: '11px',
                 padding: '4px 10px',
                 borderRadius: '14px',
-                background: targetRole === p.role ? 'rgba(56, 189, 248, 0.2)' : 'rgba(30, 41, 59, 0.6)',
-                border: `1px solid ${targetRole === p.role ? 'rgba(56, 189, 248, 0.6)' : 'rgba(100, 116, 139, 0.3)'}`,
-                color: targetRole === p.role ? '#38bdf8' : '#cbd5e1',
+                background: targetRole === p.role ? 'var(--c-accent)' : 'var(--c-surface-alt)',
+                border: `1px solid ${targetRole === p.role ? 'var(--c-accent)' : 'var(--c-line)'}`,
+                color: targetRole === p.role ? '#ffffff' : 'var(--c-ink)',
                 cursor: 'pointer',
+                fontWeight: targetRole === p.role ? 700 : 500,
                 transition: 'all 0.15s ease'
               }}
             >
@@ -246,14 +246,14 @@ export default function CustomResumeTab() {
         
         {/* Left Column: Form Inputs */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <h3 style={{ fontSize: '15px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Layers size={17} color="#38bdf8" /> Opportunity Details
+          <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Layers size={17} color="var(--c-brand)" /> Opportunity Details
           </h3>
 
           {/* Company Name */}
           <div className="form-group" style={{ margin: 0 }}>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Building2 size={13} color="#94a3b8" /> Target Company Name (Optional)
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Building2 size={13} color="var(--c-ink-soft)" /> Target Company Name (Optional)
             </label>
             <input
               type="text"
@@ -266,8 +266,8 @@ export default function CustomResumeTab() {
 
           {/* Target Role */}
           <div className="form-group" style={{ margin: 0 }}>
-            <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Briefcase size={13} color="#94a3b8" /> Target Role / Job Title
+            <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Briefcase size={13} color="var(--c-ink-soft)" /> Target Role / Job Title
             </label>
             <input
               type="text"
@@ -281,10 +281,10 @@ export default function CustomResumeTab() {
           {/* Job Description (JD) */}
           <div className="form-group" style={{ margin: 0 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-              <label style={{ fontSize: '12px', fontWeight: 600, color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
-                <FileText size={13} color="#94a3b8" /> Target Job Description (JD)
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                <FileText size={13} color="var(--c-ink-soft)" /> Target Job Description (JD)
               </label>
-              <span style={{ fontSize: '11px', color: '#64748b' }}>
+              <span style={{ fontSize: '11px', color: 'var(--c-ink-soft)' }}>
                 {jobDescription.length} characters
               </span>
             </div>
@@ -312,7 +312,7 @@ export default function CustomResumeTab() {
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: '10px 18px', color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.4)' }}
+              style={{ padding: '10px 18px' }}
               onClick={handlePreviewPdf}
               disabled={loading || previewLoading}
             >
@@ -327,22 +327,22 @@ export default function CustomResumeTab() {
           {/* Keyword Match Card */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <Cpu size={16} color="#38bdf8" /> Detected ATS Keywords ({matchedKeywords.length})
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <Cpu size={16} color="var(--c-brand)" /> Detected ATS Keywords ({matchedKeywords.length})
               </h3>
               <span style={{
                 fontSize: '11px',
                 fontWeight: 700,
                 padding: '2px 8px',
                 borderRadius: '10px',
-                background: matchedKeywords.length > 5 ? 'rgba(34, 197, 94, 0.2)' : 'rgba(56, 189, 248, 0.15)',
-                color: matchedKeywords.length > 5 ? '#4ade80' : '#38bdf8'
+                background: matchedKeywords.length > 5 ? 'var(--c-go-soft)' : 'var(--c-brand-tint)',
+                color: matchedKeywords.length > 5 ? 'var(--c-go)' : 'var(--c-brand)'
               }}>
                 {matchedKeywords.length > 5 ? '🔥 High Match' : 'Normal Match'}
               </span>
             </div>
 
-            <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>
+            <p style={{ fontSize: '12px', color: 'var(--c-ink-soft)', margin: 0 }}>
               The engine detected the following technical keywords in your input. These terms are prioritized and highlighted in your resume:
             </p>
 
@@ -356,19 +356,19 @@ export default function CustomResumeTab() {
                       fontWeight: 600,
                       padding: '3px 9px',
                       borderRadius: '6px',
-                      background: 'rgba(56, 189, 248, 0.15)',
-                      border: '1px solid rgba(56, 189, 248, 0.3)',
-                      color: '#38bdf8',
+                      background: 'var(--c-brand-tint)',
+                      border: '1px solid var(--c-line)',
+                      color: 'var(--c-brand)',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px'
                     }}
                   >
-                    <CheckCircle2 size={11} color="#38bdf8" /> {kw}
+                    <CheckCircle2 size={11} color="var(--c-brand)" /> {kw}
                   </span>
                 ))
               ) : (
-                <div style={{ fontSize: '12px', color: '#64748b', fontStyle: 'italic', padding: '10px 0' }}>
+                <div style={{ fontSize: '12px', color: 'var(--c-ink-soft)', fontStyle: 'italic', padding: '10px 0' }}>
                   No keywords detected yet. Paste a job description or select a role preset to analyze matches.
                 </div>
               )}
@@ -377,21 +377,21 @@ export default function CustomResumeTab() {
 
           {/* ATS Optimization Highlights */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <h4 style={{ fontSize: '13px', fontWeight: 700, color: '#f8fafc', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Zap size={14} color="#f59e0b" /> How Your Resume Is Dynamically Tailored
+            <h4 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--c-ink)', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Zap size={14} color="var(--c-accent)" /> How Your Resume Is Dynamically Tailored
             </h4>
-            <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: 'var(--c-ink-soft)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <li>
-                <strong style={{ color: '#e2e8f0' }}>Targeted Subtitle:</strong> Automatically specializes under your name based on your selected role ({targetRole || 'Full Stack Developer'}).
+                <strong style={{ color: 'var(--c-ink)' }}>Targeted Subtitle:</strong> Automatically specializes under your name based on your selected role ({targetRole || 'Full Stack Developer'}).
               </li>
               <li>
-                <strong style={{ color: '#e2e8f0' }}>Dynamic Bullet Reordering:</strong> Evaluates your achievements at Togopool, 100acress, and TawglUp, boosting matching bullets to the top of each company.
+                <strong style={{ color: 'var(--c-ink)' }}>Dynamic Bullet Reordering:</strong> Evaluates your achievements at Togopool, 100acress, and TawglUp, boosting matching bullets to the top of each company.
               </li>
               <li>
-                <strong style={{ color: '#e2e8f0' }}>Skills Prioritization:</strong> Highlights matched technologies in your 2-column skills matrix.
+                <strong style={{ color: 'var(--c-ink)' }}>Skills Prioritization:</strong> Highlights matched technologies in your 2-column skills matrix.
               </li>
               <li>
-                <strong style={{ color: '#e2e8f0' }}>Exact 1-Page Layout:</strong> Strictly rendered to your verified LaTeX template with zero line overflow.
+                <strong style={{ color: 'var(--c-ink)' }}>Exact 1-Page Layout:</strong> Strictly rendered to your verified LaTeX template with zero line overflow.
               </li>
             </ul>
           </div>
@@ -402,8 +402,8 @@ export default function CustomResumeTab() {
       {previewUrl && (
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-              <Eye size={17} color="#38bdf8" /> Live Tailored PDF Resume Preview
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+              <Eye size={17} color="var(--c-brand)" /> Live Tailored PDF Resume Preview
             </h3>
             <div style={{ display: 'flex', gap: '10px' }}>
               <a

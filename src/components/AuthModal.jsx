@@ -72,11 +72,11 @@ export default function AuthModal({ isOpen, onClose }) {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              {mode === 'login' ? <LogIn size={20} color="#38bdf8" /> : <UserPlus size={20} color="#38bdf8" />}
+            <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {mode === 'login' ? <LogIn size={20} color="var(--c-accent)" /> : <UserPlus size={20} color="var(--c-accent)" />}
               {mode === 'login' ? 'Sign In to AutoResume' : 'Create Your Account'}
             </h2>
-            <p style={{ fontSize: '13px', color: '#94a3b8', marginTop: '4px' }}>
+            <p style={{ fontSize: '13px', color: 'var(--c-ink-soft)', marginTop: '4px' }}>
               {mode === 'login' 
                 ? 'Access your private resume profile & job queues' 
                 : 'Start automating your personal job applications'}
@@ -93,7 +93,7 @@ export default function AuthModal({ isOpen, onClose }) {
         </div>
 
         {/* Tab switch */}
-        <div style={{ display: 'flex', background: 'rgba(15, 23, 42, 0.6)', borderRadius: '8px', padding: '4px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'flex', background: 'var(--c-surface-alt)', borderRadius: '8px', padding: '4px', marginBottom: '20px', border: '1px solid var(--c-line)' }}>
           <button
             type="button"
             className={`btn btn-sm ${mode === 'login' ? 'btn-primary' : 'btn-secondary'}`}
@@ -185,19 +185,20 @@ export default function AuthModal({ isOpen, onClose }) {
 
         {/* Quick Admin Shortcut Helper */}
         {mode === 'login' && (
-          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.08)', textAlign: 'center' }}>
+          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--c-line)', textAlign: 'center' }}>
             <button
               type="button"
               onClick={fillPrimaryAdmin}
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: '#38bdf8',
+                color: 'var(--c-accent)',
                 fontSize: '12px',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '4px'
+                gap: '4px',
+                fontWeight: 600
               }}
             >
               <Sparkles size={12} /> Fill Owner Account (Ashutosh)
