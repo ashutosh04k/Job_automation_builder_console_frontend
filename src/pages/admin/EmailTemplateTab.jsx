@@ -45,7 +45,8 @@ export default function EmailTemplateTab() {
     { tag: '{{email}}', label: 'Email Address', desc: 'Your contact email' },
     { tag: '{{linkedin}}', label: 'LinkedIn URL', desc: 'Your LinkedIn link' },
     { tag: '{{github}}', label: 'GitHub URL', desc: 'Your GitHub link' },
-    { tag: '{{portfolio}}', label: 'Portfolio URL', desc: 'Your portfolio link' }
+    { tag: '{{portfolio}}', label: 'Portfolio URL', desc: 'Your portfolio link' },
+    { tag: '{{resume}}', label: 'Resume Link', desc: 'Your Google Drive resume link' }
   ];
 
   useEffect(() => {

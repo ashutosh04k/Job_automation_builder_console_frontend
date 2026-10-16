@@ -16,7 +16,8 @@ import {
   FileCheck,
   Download,
   Eye,
-  AlertCircle
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { apiUrl, authFetch } from '../../config/api';
@@ -30,7 +31,8 @@ export default function ResumeMasterTab() {
     location: '',
     title: '',
     summary: '',
-    website: '',
+    website: 'https://drive.google.com/file/d/1bN0IYYY6qEd2XJk9SaWhLeiW3FjJqens/view?usp=sharing',
+    resumeUrl: 'https://drive.google.com/file/d/1bN0IYYY6qEd2XJk9SaWhLeiW3FjJqens/view?usp=sharing',
     linkedin: '',
     github: '',
     skills: [],
@@ -72,7 +74,8 @@ export default function ResumeMasterTab() {
           location: data.data.location || '',
           title: data.data.title || '',
           summary: data.data.summary || '',
-          website: data.data.website || '',
+          website: data.data.website || 'https://drive.google.com/file/d/1bN0IYYY6qEd2XJk9SaWhLeiW3FjJqens/view?usp=sharing',
+          resumeUrl: data.data.resumeUrl || data.data.website || 'https://drive.google.com/file/d/1bN0IYYY6qEd2XJk9SaWhLeiW3FjJqens/view?usp=sharing',
           linkedin: data.data.linkedin || '',
           github: data.data.github || '',
           skills: data.data.skills || [],
@@ -277,7 +280,19 @@ export default function ResumeMasterTab() {
                 type="text"
                 class="form-input"
                 value={resume.website || ''}
+                placeholder="https://..."
                 onChange={(e) => setResume({ ...resume, website: e.target.value })}
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label"><ExternalLink size={14} color="#a855f7" /> Resume Link (Google Drive)</label>
+              <input
+                type="text"
+                class="form-input"
+                value={resume.resumeUrl || ''}
+                placeholder="https://drive.google.com/file/d/..."
+                onChange={(e) => setResume({ ...resume, resumeUrl: e.target.value })}
               />
             </div>
 
