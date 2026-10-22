@@ -17,10 +17,13 @@ import {
   Download,
   Eye,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  ScanText
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { apiUrl, authFetch } from '../../config/api';
+import ResumeSectionsEditor from '../../components/ResumeSectionsEditor';
+import { applyDraft, countDraft } from '../../utils/resumeDraft';
 
 export default function ResumeMasterTab() {
   const { user } = useAuth();
@@ -38,8 +41,13 @@ export default function ResumeMasterTab() {
     skills: [],
     experience: [],
     education: [],
-    projects: []
+    projects: [],
+    certifications: [],
+    achievements: []
   });
+
+  // PDF -> structured draft (reviewed before it is applied and saved)
+  const [importState, setImportState] = useState({ status: 'idle', result: null, error: '' });
 
   // PDF Upload States
   const [pdfStatus, setPdfStatus] = useState({ hasCustomPdf: false });
@@ -81,7 +89,9 @@ export default function ResumeMasterTab() {
           skills: data.data.skills || [],
           experience: data.data.experience || [],
           education: data.data.education || [],
-          projects: data.data.projects || []
+          projects: data.data.projects || [],
+          certifications: data.data.certifications || [],
+          achievements: data.data.achievements || []
         });
       }
     } catch (err) {
@@ -133,8 +143,29 @@ export default function ResumeMasterTab() {
     }
   };
 
+  // Extract experience/skills/... from the chosen PDF, or from the PDF uploaded earlier.
+  const handleExtract = async () => {
+    setImportState({ status: 'loading', result: null, error: '' });
+    try {
+      const formData = new FormData();
+      if (selectedFile) formData.append('resumePdf', selectedFile);
+      const res = await authFetch(apiUrl('/api/resume/parse-pdf'), { method: 'POST', body: formData });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || `Extraction failed (${res.status})`);
+      setImportState({ status: 'review', result: data.data, error: '' });
+    } catch (err) {
+      setImportState({ status: 'error', result: null, error: err.message });
+    }
+  };
+
+  const handleApplyDraft = () => {
+    setResume((r) => applyDraft(r, importState.result.draft));
+    setImportState({ status: 'applied', result: importState.result, error: '' });
+    showNotification('success', 'Extracted content loaded below. Review it, then click "Save master resume".');
+  };
+
   const handleSave = async (e) => {
-    e.preventDefault();
+    e?.preventDefault();
     setSaving(true);
     try {
       const res = await authFetch(apiUrl('/api/resume'), {
@@ -142,12 +173,13 @@ export default function ResumeMasterTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(resume)
       });
-      const data = await res.json();
-      if (data.success) {
-        showNotification('success', 'Master profile updated & saved successfully!');
-      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || `Save failed (${res.status})`);
+      setResume((r) => ({ ...r, ...data.data }));
+      if (importState.status === 'applied') setImportState({ status: 'idle', result: null, error: '' });
+      showNotification('success', 'Master resume saved. Tailored resumes and ATS scores now use this version.');
     } catch (err) {
-      showNotification('error', 'Error saving profile: ' + err.message);
+      showNotification('error', 'Could not save: ' + err.message);
     } finally {
       setSaving(false);
     }
@@ -210,7 +242,58 @@ export default function ResumeMasterTab() {
           <button type="submit" className="btn btn-primary" disabled={uploadingPdf || !selectedFile}>
             <UploadCloud size={16} /> {uploadingPdf ? 'Uploading PDF...' : 'Upload & Set Active PDF'}
           </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleExtract}
+            disabled={importState.status === 'loading' || (!selectedFile && !pdfStatus.hasCustomPdf)}
+            title="Read experience, skills, education and projects from the PDF into the editor below"
+          >
+            <ScanText size={16} /> {importState.status === 'loading' ? 'Extracting…' : `Extract content from ${selectedFile ? 'this' : 'uploaded'} PDF`}
+          </button>
         </form>
+        <p style={{ margin: '10px 0 0', fontSize: 13, color: 'rgba(255, 255, 255, 0.82)' }}>
+          Tailored resumes are built from the sections below, not from the PDF file. Extract once, review, then save.
+        </p>
+
+        {importState.status === 'error' && (
+          <div role="alert" style={{ marginTop: 14, color: '#fecaca', display: 'flex', gap: 8, alignItems: 'flex-start', fontSize: 13 }}>
+            <AlertCircle size={16} style={{ flexShrink: 0 }} /> {importState.error}
+          </div>
+        )}
+
+        {importState.status === 'review' && importState.result && (() => {
+          const { draft, warnings, unparsed, pages } = importState.result;
+          const c = countDraft(draft);
+          return (
+            <div style={{ marginTop: 16, border: '1px solid var(--c-line)', borderRadius: 10, padding: 14, background: 'var(--c-surface)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <strong style={{ color: 'var(--c-ink)' }}>Found in your {pages}-page PDF</strong>
+              <div style={{ fontSize: 13, color: 'var(--c-ink)' }}>
+                {draft.fullName || 'No name'} · {c.roles} roles · {c.bullets} bullets · {c.skills} skills · {c.education} education · {c.projects} projects
+                {(draft.certifications?.length || 0) + (draft.achievements?.length || 0) > 0 && ` · ${draft.certifications.length + draft.achievements.length} certifications/achievements`}
+              </div>
+              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: 'var(--c-ink-soft)' }}>
+                {draft.experience.map((e, i) => <li key={i}>{e.role || '—'} at {e.company || '—'} ({e.period || 'no dates'}) · {e.highlights.length} bullets</li>)}
+              </ul>
+              {warnings.length > 0 && (
+                <div style={{ fontSize: 12, color: 'var(--c-accent-deep)' }}>
+                  <strong>Check these:</strong>
+                  <ul style={{ margin: '4px 0 0', paddingLeft: 18 }}>{warnings.map((w) => <li key={w}>{w}</li>)}</ul>
+                </div>
+              )}
+              {unparsed.length > 0 && (
+                <div style={{ fontSize: 12, color: 'var(--c-ink-soft)' }}>Not imported (no matching section): {unparsed.join(' · ')}</div>
+              )}
+              <p style={{ fontSize: 12, color: 'var(--c-ink-soft)', margin: 0 }}>
+                Applying replaces the Experience, Skills, Education, Projects and Certifications sections below. Nothing is saved until you click "Save master resume".
+              </p>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button type="button" className="btn btn-primary btn-sm" onClick={handleApplyDraft}>Apply to editor</button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setImportState({ status: 'idle', result: null, error: '' })}>Discard</button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Master Profile Form */}
@@ -218,8 +301,8 @@ export default function ResumeMasterTab() {
         <h2 className="card-header-title">
           <FileText size={20} color="#38bdf8" /> Master Resume Profile — {resume.fullName || 'My Profile'}
         </h2>
-        <p class="card-subtitle">
-          Your authentic work experience and contact details used in cold outreach email bodies.
+        <p className="card-subtitle">
+          Contact details and summary. Your experience, skills, education and projects are edited below.
         </p>
 
         <form onSubmit={handleSave} class="form-grid">
@@ -333,6 +416,20 @@ export default function ResumeMasterTab() {
             </button>
           </div>
         </form>
+      </div>
+
+      {importState.status === 'applied' && (
+        <div className="glass-card" role="status" style={{ borderColor: 'var(--c-accent)', fontSize: 13 }}>
+          Extracted content is loaded below but <strong>not saved yet</strong>. Review it, then click "Save master resume".
+        </div>
+      )}
+
+      <ResumeSectionsEditor value={resume} onChange={setResume} />
+
+      <div style={{ position: 'sticky', bottom: 0, display: 'flex', justifyContent: 'flex-end', padding: '12px 0', background: 'linear-gradient(transparent, var(--c-page) 40%)' }}>
+        <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
+          <Save size={16} /> {saving ? 'Saving…' : 'Save master resume'}
+        </button>
       </div>
     </div>
   );
