@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, ArrowUp, ArrowDown, Building, GraduationCap, FolderGit2, Code, Award } from 'lucide-react';
 import { EMPTY, linesToList, csvToList } from '../utils/resumeDraft';
+import { bulletFit } from '../utils/bulletFit';
 
 /**
  * Editor for the structured parts of the master resume (what the tailored PDF is built from).
@@ -25,6 +26,25 @@ function ListField({ id, value = [], onChange, parse, join, multiline = false, r
   return multiline ? <textarea {...props} rows={rows} /> : <input type="text" {...props} />;
 }
 const Bullets = (p) => <ListField {...p} multiline parse={linesToList} join={(l) => l.join('\n')} />;
+
+/** Which bullets wrap to a second line in the PDF, and how much to cut. */
+function BulletFitHint({ bullets = [] }) {
+  if (!bullets.length) return null;
+  const long = bullets.map((b, i) => ({ i, ...bulletFit(b) })).filter((b) => b.lines > 1);
+  const style = { margin: '6px 0 0', fontSize: 12, lineHeight: 1.5 };
+  if (!long.length) {
+    return <p style={{ ...style, color: 'var(--c-go)' }}>All {bullets.length} bullets fit on one line.</p>;
+  }
+  return (
+    <div style={{ ...style, color: 'var(--c-accent-deep)' }}>
+      {long.length} of {bullets.length} bullets take {long.length === 1 ? 'a second line' : 'extra lines'} in the PDF. Shorten to fit more on the page:
+      <ul style={{ margin: '2px 0 0', paddingLeft: 18 }}>
+        {long.map((b) => <li key={b.i}>Line {b.i + 1}: cut about {b.overBy} characters{b.lines > 2 ? ` (${b.lines} lines now)` : ''}</li>)}
+      </ul>
+    </div>
+  );
+}
+
 const Csv = (p) => <ListField {...p} parse={csvToList} join={(l) => l.join(', ')} />;
 
 function Field({ id, label, value, onChange, placeholder }) {
@@ -82,7 +102,7 @@ export default function ResumeSectionsEditor({ value, onChange }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <Section icon={Building} title="Experience" count={list('experience').length} onAdd={add('experience')} addLabel="Add role"
-        hint="Most recent first. Put every bullet you have here; the tailored resume picks the most relevant ones for each job and fits one page.">
+        hint="Most recent first. Put every bullet you have here; the tailored resume picks the most relevant ones for each job and fits one page. One-line bullets (about 120 characters) let more of them fit.">
         {list('experience').map((e, i) => (
           <div key={i} style={entryBox}>
             <EntryToolbar index={i} total={list('experience').length} onMove={move('experience')} onRemove={remove('experience')} label={e.role || `role ${i + 1}`} />
@@ -96,6 +116,7 @@ export default function ResumeSectionsEditor({ value, onChange }) {
               <label className="form-label" htmlFor={`exp-bullets-${i}`}>Bullets (one per line)</label>
               <Bullets id={`exp-bullets-${i}`} value={e.highlights} rows={Math.min(12, Math.max(4, (e.highlights || []).length + 1))}
                 onChange={(v) => update('experience', i, { highlights: v })} placeholder="Built ... using ..., which ... (impact)" />
+              <BulletFitHint bullets={e.highlights} />
             </div>
           </div>
         ))}
@@ -146,6 +167,7 @@ export default function ResumeSectionsEditor({ value, onChange }) {
             <div className="form-group" style={{ margin: 0 }}>
               <label className="form-label" htmlFor={`pr-bullets-${i}`}>Bullets (one per line)</label>
               <Bullets id={`pr-bullets-${i}`} value={p.highlights} rows={4} onChange={(v) => update('projects', i, { highlights: v })} />
+              <BulletFitHint bullets={p.highlights} />
             </div>
           </div>
         ))}
