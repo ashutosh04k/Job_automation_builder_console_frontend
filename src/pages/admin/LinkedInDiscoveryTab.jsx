@@ -22,8 +22,11 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 import { apiUrl, authFetch } from '../../config/api';
+import { useAuth } from '../../context/AuthContext';
+import { resumeFileName } from '../../utils/fileName';
 
 export default function LinkedInDiscoveryTab() {
+  const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [counts, setCounts] = useState({ all: 0, easyApply: 0, external: 0 });
   const [loading, setLoading] = useState(false);
@@ -43,6 +46,8 @@ export default function LinkedInDiscoveryTab() {
 
   // Action states
   const [queuingId, setQueuingId] = useState(null);
+  // Recruiter email entry for "Move to queue" (never guessed)
+  const [emailDraft, setEmailDraft] = useState({ id: null, value: '', error: '' });
   const [deletingId, setDeletingId] = useState(null);
 
   // Tailored ATS PDF Modal
@@ -118,15 +123,22 @@ export default function LinkedInDiscoveryTab() {
   };
 
   const handleQueueTarget = async (job) => {
-    setQueuingId(job._id || job.jobId);
+    const id = job._id || job.jobId;
+    const email = emailDraft.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailDraft((d) => ({ ...d, error: 'Enter a valid recruiter email.' }));
+      return;
+    }
+    setQueuingId(id);
     try {
-      const res = await authFetch(apiUrl(`/api/discovered-jobs/${job._id || job.jobId}/queue-target`), {
+      const res = await authFetch(apiUrl(`/api/discovered-jobs/${id}/queue-target`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({ email })
       });
       const data = await res.json();
       if (data.success) {
+        setEmailDraft({ id: null, value: '', error: '' });
         showNotification('success', data.message || `Queued "${job.title}" for 9 AM outreach!`);
         fetchJobs();
       } else {
@@ -176,9 +188,7 @@ export default function LinkedInDiscoveryTab() {
     if (!pdfModalUrl || !pdfModalJob) return;
     const a = document.createElement('a');
     a.href = pdfModalUrl;
-    const cleanRole = (pdfModalJob.title || 'Resume').replace(/[^a-zA-Z0-9_-]/g, '_');
-    const cleanCompany = pdfModalJob.company ? `_${pdfModalJob.company.replace(/[^a-zA-Z0-9_-]/g, '_')}` : '';
-    a.download = `Ashutosh_Kumar_${cleanRole}${cleanCompany}.pdf`;
+    a.download = resumeFileName(user?.name, pdfModalJob.title, pdfModalJob.company);
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -464,9 +474,11 @@ export default function LinkedInDiscoveryTab() {
               <tbody>
                 {jobs.map((job) => {
                   const isEasy = job.applyType === 'easy_apply' || job.isEasyApply;
-                  const atsScore = job.atsScore || 88;
-                  const scoreColor = atsScore >= 90 ? 'var(--c-go)' : atsScore >= 80 ? 'var(--c-accent)' : 'var(--c-ink-soft)';
-                  const scoreBg = atsScore >= 90 ? 'var(--c-go-soft)' : atsScore >= 80 ? 'var(--c-accent-soft)' : 'var(--c-surface-alt)';
+                  // Real score from the backend; null when the job came without a description.
+                  const atsScore = typeof job.atsScore === 'number' ? job.atsScore : null;
+                  const scoreColor = atsScore === null ? 'var(--c-ink-soft)' : atsScore >= 80 ? 'var(--c-go)' : atsScore >= 65 ? 'var(--c-brand)' : atsScore >= 50 ? 'var(--c-accent)' : 'var(--c-error)';
+                  const scoreBg = atsScore === null ? 'var(--c-surface-alt)' : atsScore >= 80 ? 'var(--c-go-soft)' : atsScore >= 65 ? 'var(--c-brand-tint)' : atsScore >= 50 ? 'var(--c-accent-soft)' : 'var(--c-error-soft)';
+                  const jobKey = job._id || job.jobId;
 
                   return (
                     <tr 
@@ -565,8 +577,11 @@ export default function LinkedInDiscoveryTab() {
                           fontSize: '13px'
                         }}>
                           <Sparkles size={13} />
-                          {atsScore}% ATS Match
+                          {atsScore === null ? 'Not scored' : `${atsScore} ATS match`}
                         </span>
+                        {atsScore === null && (
+                          <div style={{ fontSize: '11px', color: 'var(--c-ink-soft)', marginTop: '4px' }}>No job description scraped</div>
+                        )}
                       </td>
 
                       {/* Discovered / Posted Time */}
@@ -622,8 +637,8 @@ export default function LinkedInDiscoveryTab() {
                           <button
                             type="button"
                             className="btn btn-sm"
-                            disabled={queuingId === (job._id || job.jobId) || job.status === 'queued'}
-                            onClick={() => handleQueueTarget(job)}
+                            disabled={queuingId === jobKey || job.status === 'queued'}
+                            onClick={() => setEmailDraft({ id: jobKey, value: '', error: '' })}
                             title="Queue this job for scheduled 9:00 AM outreach email dispatch"
                             style={{
                               display: 'inline-flex',
@@ -635,7 +650,7 @@ export default function LinkedInDiscoveryTab() {
                               opacity: job.status === 'queued' ? 0.8 : 1
                             }}
                           >
-                            {queuingId === (job._id || job.jobId) ? (
+                            {queuingId === jobKey ? (
                               <Loader2 size={14} className="spin" />
                             ) : (
                               <Send size={14} />
@@ -648,13 +663,35 @@ export default function LinkedInDiscoveryTab() {
                             type="button"
                             className="btn btn-secondary btn-sm"
                             onClick={() => handleDelete(job._id || job.jobId, job.title)}
-                            disabled={deletingId === (job._id || job.jobId)}
+                            disabled={deletingId === jobKey}
                             title="Remove job"
                             style={{ color: 'var(--c-error)', padding: '6px 8px' }}
                           >
                             <Trash2 size={14} />
                           </button>
                         </div>
+                        {emailDraft.id === jobKey && (
+                          <form
+                            onSubmit={(e) => { e.preventDefault(); handleQueueTarget(job); }}
+                            style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px', alignItems: 'flex-end' }}
+                          >
+                            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                              <input
+                                type="email"
+                                className="form-input"
+                                autoFocus
+                                placeholder="recruiter@company.com"
+                                aria-label={`Recruiter email for ${job.title}`}
+                                value={emailDraft.value}
+                                onChange={(e) => setEmailDraft({ id: jobKey, value: e.target.value, error: '' })}
+                                style={{ minWidth: '220px', padding: '6px 10px', fontSize: '12px' }}
+                              />
+                              <button type="submit" className="btn btn-primary btn-sm" disabled={queuingId === jobKey}>Queue</button>
+                              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEmailDraft({ id: null, value: '', error: '' })}>Cancel</button>
+                            </div>
+                            {emailDraft.error && <span role="alert" style={{ fontSize: '11px', color: 'var(--c-error)' }}>{emailDraft.error}</span>}
+                          </form>
+                        )}
                       </td>
                     </tr>
                   );
@@ -750,7 +787,7 @@ export default function LinkedInDiscoveryTab() {
                   <span>Algorithm-Tailored ATS PDF Resume Preview</span>
                 </h3>
                 <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--c-ink-soft)' }}>
-                  Tailored specifically for: <strong>{pdfModalJob?.title}</strong> at <strong>{pdfModalJob?.company}</strong> ({pdfModalJob?.atsScore || 88}% ATS Match)
+                  Tailored specifically for: <strong>{pdfModalJob?.title}</strong> at <strong>{pdfModalJob?.company}</strong> {typeof pdfModalJob?.atsScore === 'number' ? `(ATS ${pdfModalJob.atsScore}/100)` : ''}
                 </p>
               </div>
 
@@ -791,7 +828,7 @@ export default function LinkedInDiscoveryTab() {
                 <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', color: 'var(--c-ink-soft)' }}>
                   <Loader2 size={32} className="spin" color="var(--c-brand)" />
                   <div style={{ fontWeight: 600, color: 'var(--c-ink)' }}>Compiling algorithm-tailored ATS PDF resume...</div>
-                  <div style={{ fontSize: '12px', color: 'var(--c-ink-soft)' }}>Reordering bullet points and compiling LaTeX template</div>
+                  <div style={{ fontSize: '12px', color: 'var(--c-ink-soft)' }}>Ranking bullets by relevance and fitting to one page</div>
                 </div>
               ) : pdfModalUrl ? (
                 <iframe

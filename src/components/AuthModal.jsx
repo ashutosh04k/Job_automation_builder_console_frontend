@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { X, LogIn, UserPlus, Lock, Mail, User, Sparkles, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { X, LogIn, UserPlus, Lock, Mail, User, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function AuthModal({ isOpen, onClose }) {
   const { login, register } = useAuth();
@@ -54,12 +54,6 @@ export default function AuthModal({ isOpen, onClose }) {
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillPrimaryAdmin = () => {
-    setEmail('kumarasutosh2014@gmail.com');
-    setPassword('Ashutosh@2026');
-    setMode('login');
   };
 
   return (
@@ -192,29 +186,6 @@ export default function AuthModal({ isOpen, onClose }) {
             {loading ? 'Please wait...' : (mode === 'login' ? 'Sign In to Workspace' : 'Create Free Account')}
           </button>
         </form>
-
-        {/* Quick Admin Shortcut Helper */}
-        {mode === 'login' && (
-          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--c-line)', textAlign: 'center' }}>
-            <button
-              type="button"
-              onClick={fillPrimaryAdmin}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--c-accent)',
-                fontSize: '12px',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontWeight: 600
-              }}
-            >
-              <Sparkles size={12} /> Fill Owner Account (Ashutosh)
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );

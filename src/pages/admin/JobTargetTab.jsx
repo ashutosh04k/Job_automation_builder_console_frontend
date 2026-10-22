@@ -22,35 +22,22 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { apiUrl, authFetch } from '../../config/api';
+import { useAuth } from '../../context/AuthContext';
+import { resumeFileName } from '../../utils/fileName';
+import { useAtsScore } from '../../hooks/useAtsScore';
+import AtsScorePanel from '../../components/AtsScorePanel';
 
-// Candidate Skills Dictionary for ATS Scoring
-const CANDIDATE_ATS_SKILLS = [
-  'react', 'react.js', 'next.js', 'nextjs', 'typescript', 'javascript', 'node', 'node.js',
-  'express', 'mongodb', 'sql', 'postgres', 'postgresql', 'mysql', 'aws', 'docker', 'kubernetes',
-  'redux', 'rtk query', 'tailwind', 'material ui', 'websockets', 'firebase', 'stripe', 'payment',
-  'ci/cd', 'github actions', 'nginx', 'graphql', 'rest api', 'microservices', 'seo', 'crm',
-  'llm', 'ai', 'langchain', 'jest', 'cypress', 'performance', 'virtualization', 'memoization',
-  'rbac', 'push notification', 'google maps', 'tracking', 'order', 'ecommerce', 'e-commerce',
-  'saas', 'python', 'java', 'frontend', 'backend', 'full stack', 'cloud', 'architecture'
-];
-
-export function computeAtsScore(target) {
-  if (target?.atsScore && typeof target.atsScore === 'number') {
-    return target.atsScore;
-  }
-  const jd = (target?.jobDescription || '').toLowerCase();
-  const role = (target?.targetRole || '').toLowerCase();
-  const text = `${role} ${jd}`;
-  if (!text.trim()) return 86;
-
-  let matches = 0;
-  for (const skill of CANDIDATE_ATS_SKILLS) {
-    if (text.includes(skill)) matches++;
-  }
-  return Math.min(98, 82 + Math.min(16, matches * 2));
-}
+// Score comes from the backend (real ATS scorer). null = not scored yet.
+const scoreLabel = (score) =>
+  score >= 80 ? 'Strong' : score >= 65 ? 'Good' : score >= 50 ? 'Fair' : 'Low';
+const scoreTone = (score) =>
+  score >= 80 ? { bg: 'var(--c-go-soft)', fg: 'var(--c-go)' }
+  : score >= 65 ? { bg: 'var(--c-brand-tint)', fg: 'var(--c-brand)' }
+  : score >= 50 ? { bg: 'var(--c-accent-soft)', fg: 'var(--c-accent-deep)' }
+  : { bg: 'var(--c-error-soft)', fg: 'var(--c-error)' };
 
 export default function JobTargetTab() {
+  const { user } = useAuth();
   // Accordion open/close states (top closed by default, bottom open by default)
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isTableOpen, setIsTableOpen] = useState(true);
@@ -196,6 +183,26 @@ export default function JobTargetTab() {
     }
   };
 
+  // Full ATS report for the target open in the PDF modal
+  const modalAts = useAtsScore({ targetId: pdfModalTarget?._id || null, enabled: Boolean(pdfModalTarget?._id) });
+
+  // Recompute stored ATS scores for all targets (e.g. after editing the master resume)
+  const [rescoring, setRescoring] = useState(false);
+  const handleRescoreAll = async () => {
+    setRescoring(true);
+    try {
+      const res = await authFetch(apiUrl('/api/targets/rescore'), { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || 'Rescore failed');
+      showNotification('success', `ATS scores refreshed for ${data.total} target(s).`);
+      fetchTargets(page, limit, search);
+    } catch (err) {
+      showNotification('error', err.message);
+    } finally {
+      setRescoring(false);
+    }
+  };
+
   // Trigger all daily 9 AM cron jobs
   const handleTriggerAllCron = async () => {
     showNotification('success', '⏳ Executing Daily 9:00 AM Cron Batch Job for all active targets...');
@@ -203,7 +210,7 @@ export default function JobTargetTab() {
       const res = await authFetch(apiUrl('/api/targets/trigger-all-cron'), { method: 'POST' });
       const data = await res.json();
       if (data.success) {
-        showNotification('success', `🎉 Batch Cron executed! Processed ${data.summary?.processedCount || 0} email targets.`);
+        showNotification('success', `Daily run finished: ${data.summary?.processedCount || 0} new target(s) emailed. Already-sent targets are skipped.`);
         fetchTargets(page, limit, search);
       } else {
         showNotification('error', data.error || 'Cron batch failed.');
@@ -279,7 +286,10 @@ export default function JobTargetTab() {
     try {
       showNotification('success', '⏳ Compiling ATS tailored PDF resume preview...');
       const res = await authFetch(apiUrl(`/api/resume/tailored-pdf/${target._id}`));
-      if (!res.ok) throw new Error('Failed to generate tailored PDF preview');
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to generate tailored PDF preview');
+      }
       const rawBlob = await res.blob();
       const pdfBlob = new Blob([rawBlob], { type: 'application/pdf' });
       const url = window.URL.createObjectURL(pdfBlob);
@@ -299,6 +309,7 @@ export default function JobTargetTab() {
       setPdfModalUrl(null);
     }
     setPdfModalTarget(null);
+    fetchTargets(page, limit, search);
   };
 
   // Download PDF from inside Preview Modal
@@ -306,9 +317,7 @@ export default function JobTargetTab() {
     if (!pdfModalUrl || !pdfModalTarget) return;
     const a = document.createElement('a');
     a.href = pdfModalUrl;
-    const cleanRole = (pdfModalTarget.targetRole || 'Resume').replace(/[^a-zA-Z0-9_-]/g, '_');
-    const cleanCompany = pdfModalTarget.companyName ? `_${pdfModalTarget.companyName.replace(/[^a-zA-Z0-9_-]/g, '_')}` : '';
-    a.download = `Ashutosh_Kumar_${cleanRole}${cleanCompany}.pdf`;
+    a.download = resumeFileName(user?.name, pdfModalTarget.targetRole, pdfModalTarget.companyName);
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -325,7 +334,7 @@ export default function JobTargetTab() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Ashutosh_Kumar_${(role || 'Resume').replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+      a.download = resumeFileName(user?.name, role);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -350,7 +359,7 @@ export default function JobTargetTab() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Ashutosh_Kumar_${(role || 'Resume').replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+      a.download = resumeFileName(user?.name, role);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -396,13 +405,25 @@ export default function JobTargetTab() {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button 
-              class="btn btn-secondary btn-sm" 
+              className="btn btn-secondary btn-sm" 
               onClick={(e) => {
                 e.stopPropagation();
                 handleTriggerAllCron();
               }}
             >
               <Clock size={14} color="var(--c-brand)" /> Run 9 AM Cron Now
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              disabled={rescoring}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRescoreAll();
+              }}
+              title="Recalculate ATS scores against your current master resume"
+            >
+              <Sparkles size={14} color="var(--c-brand)" /> {rescoring ? 'Rescoring…' : 'Rescore ATS'}
             </button>
             <div 
               style={{ 
@@ -665,9 +686,15 @@ export default function JobTargetTab() {
                       </td>
 
                       <td>
-                        <span class={`status-badge ${target.isActive ? 'badge-active' : 'badge-paused'}`} style={{whiteSpace:'nowrap'}}>
-                          {target.isActive ? '✓ Active 9 AM' : 'Paused'}
-                        </span>
+                        {(() => {
+                          const st = !target.isActive ? 'paused' : (target.status || 'active');
+                          const text = { completed: '✓ Sent', error: 'Send failed', paused: 'Paused', active: 'Queued' }[st] || 'Queued';
+                          return (
+                            <span className={`status-badge ${st === 'paused' || st === 'error' ? 'badge-paused' : 'badge-active'}`} style={{ whiteSpace: 'nowrap' }}>
+                              {text}
+                            </span>
+                          );
+                        })()}
                       </td>
 
                       <td>
@@ -681,33 +708,27 @@ export default function JobTargetTab() {
 
                       {/* ATS Score Column next to Total Sent */}
                       <td>
-                        {(() => {
-                          const score = computeAtsScore(target);
-                          const isHigh = score >= 90;
-                          const isStrong = score >= 80;
-                          return (
-                            <div>
-                              <div style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                padding: '3px 8px',
-                                borderRadius: '6px',
-                                background: isHigh ? 'var(--c-go-soft)' : isStrong ? 'rgba(56, 189, 248, 0.15)' : 'var(--c-accent-soft)',
-                                color: isHigh ? 'var(--c-go)' : isStrong ? '#0284c7' : 'var(--c-accent)',
-                                border: `1px solid ${isHigh ? 'rgba(31, 157, 97, 0.3)' : isStrong ? 'rgba(56, 189, 248, 0.3)' : 'rgba(255, 122, 89, 0.3)'}`,
-                                fontWeight: 800,
-                                fontSize: '12px',
-                                whiteSpace: 'nowrap'
-                              }}>
-                                <Sparkles size={12} /> {score}%
-                              </div>
-                              <div style={{ fontSize: '11px', color: 'var(--c-ink-soft)', marginTop: '3px', whiteSpace: 'nowrap' }}>
-                                {isHigh ? 'High Match' : isStrong ? 'Strong Match' : 'Good Match'}
-                              </div>
-                            </div>
-                          );
-                        })()}
+                        {typeof target.atsScore === 'number' ? (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenPdfPreview(target)}
+                            title="Open the tailored PDF and full ATS breakdown"
+                            style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+                          >
+                            <span style={{
+                              display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '3px 8px', borderRadius: '6px',
+                              background: scoreTone(target.atsScore).bg, color: scoreTone(target.atsScore).fg,
+                              border: '1px solid var(--c-line)', fontWeight: 800, fontSize: '12px', whiteSpace: 'nowrap'
+                            }}>
+                              <Sparkles size={12} /> {target.atsScore}
+                            </span>
+                            <span style={{ display: 'block', fontSize: '11px', color: 'var(--c-ink-soft)', marginTop: '3px', whiteSpace: 'nowrap' }}>
+                              {scoreLabel(target.atsScore)} match
+                            </span>
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '12px', color: 'var(--c-ink-soft)' }} title="Not scored yet. Use “Rescore ATS”.">—</span>
+                        )}
                       </td>
 
                       <td>
@@ -941,20 +962,15 @@ export default function JobTargetTab() {
                       {pdfModalTarget.companyName && <span> at <strong style={{ color: 'var(--c-ink)' }}>{pdfModalTarget.companyName}</strong></span>}
                       {' '}&bull; <span style={{ color: 'var(--c-accent)' }}>{pdfModalTarget.email}</span>
                     </p>
-                    <span style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: '2px 8px',
-                      borderRadius: '5px',
-                      background: computeAtsScore(pdfModalTarget) >= 90 ? 'var(--c-go-soft)' : 'rgba(56, 189, 248, 0.15)',
-                      color: computeAtsScore(pdfModalTarget) >= 90 ? 'var(--c-go)' : '#0284c7',
-                      border: `1px solid ${computeAtsScore(pdfModalTarget) >= 90 ? 'rgba(31, 157, 97, 0.3)' : 'rgba(56, 189, 248, 0.3)'}`,
-                      fontWeight: 800,
-                      fontSize: '11px'
-                    }}>
-                      <Sparkles size={11} /> ATS Score: {computeAtsScore(pdfModalTarget)}%
-                    </span>
+                    {modalAts.report?.score != null && (
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '2px 8px', borderRadius: '5px',
+                        background: scoreTone(modalAts.report.score).bg, color: scoreTone(modalAts.report.score).fg,
+                        border: '1px solid var(--c-line)', fontWeight: 800, fontSize: '11px'
+                      }}>
+                        <Sparkles size={11} /> ATS {modalAts.report.score}/100
+                      </span>
+                    )}
                   </div>
                 )}
               </div>
@@ -992,9 +1008,11 @@ export default function JobTargetTab() {
               </div>
             </div>
 
-            {/* Modal Body: Full-height PDF Viewer */}
+            {/* Modal Body: PDF viewer + ATS report */}
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
             <div style={{ 
-              width: '100%', 
+              flex: '1 1 520px',
+              minWidth: 0,
               height: 'calc(94vh - 120px)', 
               minHeight: '620px', 
               borderRadius: '10px', 
@@ -1009,7 +1027,7 @@ export default function JobTargetTab() {
                 <div style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', color: '#94a3b8' }}>
                   <div className="pulse-dot" style={{ width: '12px', height: '12px' }}></div>
                   <div style={{ fontWeight: 600, color: '#f8fafc' }}>Compiling algorithm-tailored ATS PDF resume...</div>
-                  <div style={{ fontSize: '12px', color: '#94a3b8' }}>Reordering bullet points, prioritizing relevant skills, and compiling LaTeX template</div>
+                  <div style={{ fontSize: '12px', color: '#94a3b8' }}>Ranking bullets by relevance, mirroring the JD's skill names, fitting to one page</div>
                 </div>
               ) : pdfModalUrl ? (
                 <iframe
@@ -1029,6 +1047,10 @@ export default function JobTargetTab() {
                   Failed to load PDF preview.
                 </div>
               )}
+            </div>
+            <div style={{ flex: '1 1 300px', maxWidth: '100%', maxHeight: 'calc(94vh - 120px)', overflowY: 'auto' }}>
+              <AtsScorePanel status={modalAts.status} report={modalAts.report} error={modalAts.error} onRetry={modalAts.refresh} compact />
+            </div>
             </div>
           </div>
         </div>

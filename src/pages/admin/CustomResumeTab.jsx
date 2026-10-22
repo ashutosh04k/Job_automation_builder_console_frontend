@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   FileText, 
   Download, 
@@ -7,24 +7,15 @@ import {
   Building2, 
   Briefcase, 
   RotateCcw, 
-  CheckCircle2, 
   Layers, 
-  Cpu, 
   ExternalLink,
   Zap
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { apiUrl, authFetch } from '../../config/api';
-
-const KEYWORD_DICTIONARY = [
-  'react', 'react.js', 'next.js', 'nextjs', 'typescript', 'javascript', 'node', 'node.js',
-  'express', 'mongodb', 'sql', 'postgres', 'postgresql', 'mysql', 'aws', 'docker', 'kubernetes',
-  'redux', 'rtk query', 'tailwind', 'material ui', 'websockets', 'firebase', 'stripe', 'payment',
-  'ci/cd', 'github actions', 'nginx', 'graphql', 'rest api', 'microservices', 'seo', 'crm',
-  'llm', 'ai', 'langchain', 'jest', 'cypress', 'performance', 'virtualization', 'memoization',
-  'rbac', 'push notification', 'google maps', 'tracking', 'order', 'ecommerce', 'e-commerce',
-  'saas', 'python', 'java', 'frontend', 'backend', 'full stack', 'cloud', 'architecture'
-];
+import { resumeFileName } from '../../utils/fileName';
+import { useAtsScore } from '../../hooks/useAtsScore';
+import AtsScorePanel from '../../components/AtsScorePanel';
 
 export default function CustomResumeTab() {
   const { user } = useAuth();
@@ -35,15 +26,10 @@ export default function CustomResumeTab() {
   const [loading, setLoading] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [matchedKeywords, setMatchedKeywords] = useState([]);
   const [notification, setNotification] = useState(null);
 
-  // Real-time keyword extraction from JD & target role
-  useEffect(() => {
-    const combined = `${jobDescription} ${targetRole}`.toLowerCase();
-    const matches = KEYWORD_DICTIONARY.filter(kw => combined.includes(kw));
-    setMatchedKeywords(matches);
-  }, [jobDescription, targetRole]);
+  // Real ATS score from the backend: tailors the resume for this JD and scores the printed text.
+  const ats = useAtsScore({ jobDescription, targetRole, companyName });
 
   const showNotification = (type, message) => {
     setNotification({ type, message });
@@ -75,16 +61,15 @@ export default function CustomResumeTab() {
       });
 
       if (!res.ok) {
-        throw new Error('Failed to generate tailored PDF from server');
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to generate tailored PDF from server');
       }
 
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      const cleanRole = (targetRole || 'Resume').replace(/[^a-zA-Z0-9_-]/g, '_');
-      const cleanCompany = companyName ? `_${companyName.replace(/[^a-zA-Z0-9_-]/g, '_')}` : '';
-      a.download = `Ashutosh_Kumar_${cleanRole}${cleanCompany}.pdf`;
+      a.download = resumeFileName(user?.name, targetRole, companyName);
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -115,7 +100,8 @@ export default function CustomResumeTab() {
       });
 
       if (!res.ok) {
-        throw new Error('Failed to generate preview PDF');
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to generate preview PDF');
       }
 
       const blob = await res.blob();
@@ -189,8 +175,8 @@ export default function CustomResumeTab() {
               <Sparkles size={22} color="var(--c-accent)" /> ATS Resume Tailor & Builder
             </h2>
             <p style={{ color: 'var(--c-on-dark-muted)', fontSize: '13px', marginTop: '6px', maxWidth: '680px', lineHeight: '1.5' }}>
-              Generate custom, 1-page ATS-optimized resumes formatted to your exact LaTeX layout.
-              Input the target company, role, and job description to dynamically highlight and prioritize relevant experience, skills, and projects.
+              Paste a job description to get a tailored one-page PDF and a real match score.
+              Your master resume is reordered and reworded to the JD's spelling; nothing you haven't done is added.
             </p>
           </div>
 
@@ -256,7 +242,7 @@ export default function CustomResumeTab() {
       </div>
 
       {/* Main Grid: Input Form & Keyword Analyzer */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.3fr) minmax(0, 1fr)', gap: '20px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))', gap: '20px', alignItems: 'start' }}>
         
         {/* Left Column: Form Inputs */}
         <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -338,56 +324,8 @@ export default function CustomResumeTab() {
         {/* Right Column: ATS Match Analyzer & Features Overview */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
-          {/* Keyword Match Card */}
-          <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--c-ink)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                <Cpu size={16} color="var(--c-brand)" /> Detected ATS Keywords ({matchedKeywords.length})
-              </h3>
-              <span style={{
-                fontSize: '11px',
-                fontWeight: 700,
-                padding: '2px 8px',
-                borderRadius: '10px',
-                background: matchedKeywords.length > 5 ? 'var(--c-go-soft)' : 'var(--c-brand-tint)',
-                color: matchedKeywords.length > 5 ? 'var(--c-go)' : 'var(--c-brand)'
-              }}>
-                {matchedKeywords.length > 5 ? '🔥 High Match' : 'Normal Match'}
-              </span>
-            </div>
-
-            <p style={{ fontSize: '12px', color: 'var(--c-ink-soft)', margin: 0 }}>
-              The engine detected the following technical keywords in your input. These terms are prioritized and highlighted in your resume:
-            </p>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', minHeight: '60px', alignItems: 'flex-start' }}>
-              {matchedKeywords.length > 0 ? (
-                matchedKeywords.map(kw => (
-                  <span
-                    key={kw}
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: 600,
-                      padding: '3px 9px',
-                      borderRadius: '6px',
-                      background: 'var(--c-brand-tint)',
-                      border: '1px solid var(--c-line)',
-                      color: 'var(--c-brand)',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}
-                  >
-                    <CheckCircle2 size={11} color="var(--c-brand)" /> {kw}
-                  </span>
-                ))
-              ) : (
-                <div style={{ fontSize: '12px', color: 'var(--c-ink-soft)', fontStyle: 'italic', padding: '10px 0' }}>
-                  No keywords detected yet. Paste a job description or select a role preset to analyze matches.
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Real ATS score */}
+          <AtsScorePanel status={ats.status} report={ats.report} error={ats.error} onRetry={ats.refresh} />
 
           {/* ATS Optimization Highlights */}
           <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -396,16 +334,19 @@ export default function CustomResumeTab() {
             </h4>
             <ul style={{ margin: 0, paddingLeft: '18px', fontSize: '12px', color: 'var(--c-ink-soft)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <li>
-                <strong style={{ color: 'var(--c-ink)' }}>Targeted Subtitle:</strong> Automatically specializes under your name based on your selected role ({targetRole || 'Full Stack Developer'}).
+                <strong style={{ color: 'var(--c-ink)' }}>Bullets ranked by relevance:</strong> in each role, bullets that mention the JD's skills move to the top.
               </li>
               <li>
-                <strong style={{ color: 'var(--c-ink)' }}>Dynamic Bullet Reordering:</strong> Evaluates your achievements at Togopool, 100acress, and TawglUp, boosting matching bullets to the top of each company.
+                <strong style={{ color: 'var(--c-ink)' }}>JD spelling mirrored:</strong> if the JD says "ReactJS" and you wrote "React.js", the PDF uses "ReactJS" (many ATS match words literally).
               </li>
               <li>
-                <strong style={{ color: 'var(--c-ink)' }}>Skills Prioritization:</strong> Highlights matched technologies in your 2-column skills matrix.
+                <strong style={{ color: 'var(--c-ink)' }}>Skills prioritised:</strong> the most relevant skill groups come first and matched skills are bold.
               </li>
               <li>
-                <strong style={{ color: 'var(--c-ink)' }}>Exact 1-Page Layout:</strong> Strictly rendered to your verified LaTeX template with zero line overflow.
+                <strong style={{ color: 'var(--c-ink)' }}>One page, readable:</strong> the least relevant bullets are dropped before text shrinks; body text never goes below 10pt.
+              </li>
+              <li>
+                <strong style={{ color: 'var(--c-ink)' }}>Nothing invented:</strong> missing skills are listed for you to add only if you really have them.
               </li>
             </ul>
           </div>
