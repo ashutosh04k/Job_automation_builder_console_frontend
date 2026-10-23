@@ -165,6 +165,10 @@ export default function AtsScorePanel({ status, report, error, onRetry, title = 
       <ChipGroup label="Required — missing" items={keywords.required.missing} tone="bad" icon={XCircle} />
       <ChipGroup label="Nice to have — missing" items={keywords.preferred.missing} tone="warn" icon={AlertTriangle} />
       {!compact && <ChipGroup label="Nice to have — on resume" items={keywords.preferred.matched} tone="good" icon={CheckCircle2} />}
+      <ChipGroup label="Other JD terms — missing" items={keywords.terms?.missing} tone="warn" icon={AlertTriangle} />
+      {!compact && <ChipGroup label="Other JD terms — on resume" items={keywords.terms?.matched} tone="good" icon={CheckCircle2} />}
+      {!compact && <ChipGroup label="Soft skills — not shown" items={keywords.soft?.missing} tone="warn" icon={AlertTriangle} />}
+      {!compact && <ChipGroup label="Only in Skills list (partial credit)" items={keywords.listedOnly} tone="warn" icon={Info} />}
 
       {/* Suggestions */}
       {suggestions?.length > 0 && (
