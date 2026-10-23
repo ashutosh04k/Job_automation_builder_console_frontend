@@ -16,7 +16,11 @@ import { Send, FileText, History, Settings, Globe, LogOut, UserCheck } from 'luc
 
 export default function App() {
   const { user, isAuthenticated, loading, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('targets');
+  // ?tab=linkedin-discovery (used by the extension's "Open in portal" button)
+  const [activeTab, setActiveTab] = useState(() => {
+    const t = new URLSearchParams(window.location.search).get('tab');
+    return ['targets', 'linkedin-discovery', 'custom-resume', 'master', 'template', 'autofill', 'logs', 'settings'].includes(t) ? t : 'targets';
+  });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar_collapsed');

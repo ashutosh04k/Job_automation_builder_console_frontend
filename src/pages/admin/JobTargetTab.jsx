@@ -82,6 +82,19 @@ export default function JobTargetTab() {
     fetchTargets(page, limit, search);
   }, [page, limit, search]);
 
+  // Daily-run status: when it last ran (since the server started) and what is due now.
+  const [cronStatus, setCronStatus] = useState(null);
+  const fetchCronStatus = async () => {
+    try {
+      const res = await authFetch(apiUrl('/api/targets/cron-status'));
+      const data = await res.json();
+      if (res.ok && data.success) setCronStatus(data.data);
+    } catch {
+      /* status line is optional */
+    }
+  };
+  useEffect(() => { fetchCronStatus(); }, []);
+
   const showNotification = (type, message) => {
     setToast({ type, message });
     setTimeout(() => setToast(null), 5000);
@@ -203,20 +216,20 @@ export default function JobTargetTab() {
     }
   };
 
-  // Trigger all daily 9 AM cron jobs
+  // Run the daily batch now. The server answers at once with what it will send
+  // and why the rest is skipped; emails go out in the background (see Logs).
   const handleTriggerAllCron = async () => {
-    showNotification('success', '⏳ Executing Daily 9:00 AM Cron Batch Job for all active targets...');
     try {
       const res = await authFetch(apiUrl('/api/targets/trigger-all-cron'), { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        showNotification('success', `Daily run finished: ${data.summary?.processedCount || 0} new target(s) emailed. Already-sent targets are skipped.`);
-        fetchTargets(page, limit, search);
-      } else {
-        showNotification('error', data.error || 'Cron batch failed.');
-      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || `Daily run failed (${res.status})`);
+      const s = data.summary || {};
+      const eta = s.queued > 1 ? ` About ${s.estimatedMinutes} min; results appear in Logs.` : s.queued ? ' Results appear in Logs.' : '';
+      showNotification(s.queued ? 'success' : 'error', `${data.message}${eta}`);
+      fetchTargets(page, limit, search);
+      fetchCronStatus();
     } catch (err) {
-      showNotification('error', 'Cron trigger error: ' + err.message);
+      showNotification('error', 'Daily run error: ' + err.message);
     }
   };
 
@@ -400,8 +413,16 @@ export default function JobTargetTab() {
               <Sparkles size={20} color="var(--c-accent)" /> Daily 9 AM Resume Target Automation Form
             </h2>
             <p class="card-subtitle" style={{ marginBottom: 0 }}>
-              Enter target email and job description. Backend cron job will customize your resume and email it daily at 9:00 AM.
+              Enter target email and job description. Each target is emailed once, with a resume tailored to it, in the next 9:00 AM run.
             </p>
+            {cronStatus && (
+              <p className="card-subtitle" style={{ margin: '6px 0 0', fontSize: 12 }} role="status">
+                {cronStatus.lastRun
+                  ? `Last run: ${new Date(cronStatus.lastRun.startedAt).toLocaleString()} (${cronStatus.lastRun.triggeredBy === 'cron' ? 'automatic' : 'manual'}) · ${cronStatus.lastRun.sent} sent${cronStatus.lastRun.failed ? `, ${cronStatus.lastRun.failed} failed` : ''}${cronStatus.running ? ' · still sending…' : ''}`
+                  : `No run since the server started (${new Date(cronStatus.serverStartedAt).toLocaleString()}).`}
+                {' · '}{cronStatus.message}
+              </p>
+            )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button 

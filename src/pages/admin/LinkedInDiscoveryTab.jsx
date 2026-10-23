@@ -34,6 +34,9 @@ export default function LinkedInDiscoveryTab() {
 
   // Filters & Pagination
   const [applyFilter, setApplyFilter] = useState('all'); // 'all' | 'easy_apply' | 'external'
+  const [sortBy, setSortBy] = useState('score'); // 'score' (best match first) | 'recent'
+  const [maxDays, setMaxDays] = useState(0); // 0 = any time, else posted in the last N days
+  const [rescoring, setRescoring] = useState(false);
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -68,7 +71,9 @@ export default function LinkedInDiscoveryTab() {
         page: String(page),
         limit: String(limit),
         search: search.trim(),
-        applyType: applyFilter
+        applyType: applyFilter,
+        sort: sortBy,
+        maxDays: String(maxDays)
       });
       const res = await authFetch(apiUrl(`/api/discovered-jobs?${queryParams.toString()}`));
       const data = await res.json();
@@ -93,7 +98,28 @@ export default function LinkedInDiscoveryTab() {
 
   useEffect(() => {
     fetchJobs();
-  }, [page, limit, applyFilter]);
+  }, [page, limit, applyFilter, sortBy, maxDays]);
+
+  // Re-score every saved job against the current master resume.
+  const handleRescore = async () => {
+    setRescoring(true);
+    try {
+      const res = await authFetch(apiUrl('/api/discovered-jobs/rescore'), { method: 'POST' });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || 'Rescore failed');
+      showNotification('success', data.message);
+      fetchJobs();
+    } catch (err) {
+      showNotification('error', err.message);
+    } finally {
+      setRescoring(false);
+    }
+  };
+
+  const selectStyle = {
+    padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--c-line)',
+    background: 'var(--c-surface)', color: 'var(--c-ink)', fontSize: '13px'
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -290,7 +316,7 @@ export default function LinkedInDiscoveryTab() {
             <Layers size={18} color="var(--c-ink-soft)" />
           </div>
           <div style={{ fontSize: '12px', color: 'var(--c-ink-soft)', marginTop: '8px', lineHeight: 1.45 }}>
-            Open any LinkedIn Search page, click the extension icon, switch to <strong>LinkedIn Jobs</strong> tab and click <strong>Extract & Sync</strong>!
+            In the extension's <strong>LinkedIn</strong> tab, open a search made from your resume (last 3 days), then press <strong>Scan &amp; send to portal</strong>. Each job is read in full and scored against your resume here.
           </div>
         </div>
       </div>
@@ -352,8 +378,29 @@ export default function LinkedInDiscoveryTab() {
             </button>
           </div>
 
-          {/* Right Toolbar: Refresh & Limit */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Right Toolbar: Sort, Posted, Limit, Rescore, Refresh */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            <select aria-label="Sort jobs" value={sortBy} onChange={(e) => { setSortBy(e.target.value); setPage(1); }} style={selectStyle}>
+              <option value="score">Best match first</option>
+              <option value="recent">Newest first</option>
+            </select>
+            <select aria-label="Posted within" value={maxDays} onChange={(e) => { setMaxDays(Number(e.target.value)); setPage(1); }} style={selectStyle}>
+              <option value="0">Posted any time</option>
+              <option value="1">Last 24 hours</option>
+              <option value="3">Last 3 days</option>
+              <option value="7">Last 7 days</option>
+            </select>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={handleRescore}
+              disabled={rescoring}
+              title="Score every job again against your current master resume"
+              style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Sparkles size={14} />
+              <span>{rescoring ? 'Rescoring…' : 'Rescore'}</span>
+            </button>
             <select
               value={limit}
               onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
@@ -580,7 +627,12 @@ export default function LinkedInDiscoveryTab() {
                           {atsScore === null ? 'Not scored' : `${atsScore} ATS match`}
                         </span>
                         {atsScore === null && (
-                          <div style={{ fontSize: '11px', color: 'var(--c-ink-soft)', marginTop: '4px' }}>No job description scraped</div>
+                          <div style={{ fontSize: '11px', color: 'var(--c-ink-soft)', marginTop: '4px' }}>No full description yet: scan it again with the extension</div>
+                        )}
+                        {atsScore !== null && job.missingSkills?.length > 0 && (
+                          <div style={{ fontSize: '11px', color: 'var(--c-ink-soft)', marginTop: '4px', maxWidth: 220 }}>
+                            Missing: {job.missingSkills.slice(0, 4).join(', ')}{job.missingSkills.length > 4 ? '…' : ''}
+                          </div>
                         )}
                       </td>
 
@@ -591,7 +643,9 @@ export default function LinkedInDiscoveryTab() {
                             {job.postedTime || 'Recently'}
                           </span>
                           <span style={{ fontSize: '11px' }}>
-                            {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Today'}
+                            {job.postedAt ? `Posted ~${new Date(job.postedAt).toLocaleDateString()}` : ''}
+                            {job.postedAt && job.createdAt ? ' · ' : ''}
+                            {job.createdAt ? `Found ${new Date(job.createdAt).toLocaleDateString()}` : ''}
                           </span>
                         </div>
                       </td>
