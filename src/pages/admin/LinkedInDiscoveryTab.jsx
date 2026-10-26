@@ -627,7 +627,11 @@ export default function LinkedInDiscoveryTab() {
                           {atsScore === null ? 'Not scored' : `${atsScore} ATS match`}
                         </span>
                         {atsScore === null && (
-                          <div style={{ fontSize: '11px', color: 'var(--c-ink-soft)', marginTop: '4px' }}>No full description yet: scan it again with the extension</div>
+                          <div style={{ fontSize: '11px', color: 'var(--c-ink-soft)', marginTop: '4px' }}>
+                            {(job.jobDescription || '').length >= 300
+                              ? 'Scoring against your resume… refresh in a minute'
+                              : 'No full description yet: scan it again with the extension'}
+                          </div>
                         )}
                         {atsScore !== null && job.missingSkills?.length > 0 && (
                           <div style={{ fontSize: '11px', color: 'var(--c-ink-soft)', marginTop: '4px', maxWidth: 220 }}>
