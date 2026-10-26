@@ -9,7 +9,9 @@ import {
   RotateCcw, 
   Layers, 
   ExternalLink,
-  Zap
+  Zap,
+  Mail,
+  Copy
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { apiUrl, authFetch } from '../../config/api';
@@ -27,6 +29,10 @@ export default function CustomResumeTab() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [notification, setNotification] = useState(null);
+
+  // Cover letter (built by the server from the master resume + this JD; editable here)
+  const [coverLetter, setCoverLetter] = useState('');
+  const [clLoading, setClLoading] = useState(false);
 
   // Real ATS score from the backend: tailors the resume for this JD and scores the printed text.
   const ats = useAtsScore({ jobDescription, targetRole, companyName });
@@ -118,10 +124,63 @@ export default function CustomResumeTab() {
     }
   };
 
+  // Cover letter: first click generates (and downloads); "Download PDF" re-renders your edited text.
+  const requestCoverLetter = async (text) => {
+    const res = await authFetch(apiUrl('/api/resume/cover-letter'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        companyName: companyName.trim(),
+        targetRole: targetRole.trim(),
+        jobDescription: jobDescription.trim(),
+        ...(text ? { text } : {})
+      })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.error || 'Could not create the cover letter');
+    return data.data;
+  };
+
+  const downloadBase64Pdf = (base64, filename) => {
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const url = window.URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => window.URL.revokeObjectURL(url), 30000);
+  };
+
+  const handleCoverLetter = async (useEdited = false) => {
+    setClLoading(true);
+    try {
+      const data = await requestCoverLetter(useEdited ? coverLetter.trim() : '');
+      if (!useEdited) setCoverLetter(data.text);
+      downloadBase64Pdf(data.pdfBase64, data.filename);
+      showNotification('success', useEdited ? 'Cover letter PDF downloaded.' : 'Cover letter created and downloaded. Edit it below if you like.');
+    } catch (err) {
+      showNotification('error', err.message);
+    } finally {
+      setClLoading(false);
+    }
+  };
+
+  const handleCopyCoverLetter = async () => {
+    try {
+      await navigator.clipboard.writeText(coverLetter);
+      showNotification('success', 'Cover letter copied.');
+    } catch {
+      showNotification('error', 'Could not copy; select the text and copy it manually.');
+    }
+  };
+
   const handleReset = () => {
     setCompanyName('');
     setTargetRole('Full Stack Developer');
     setJobDescription('');
+    setCoverLetter('');
     if (previewUrl) {
       window.URL.revokeObjectURL(previewUrl);
       setPreviewUrl(null);
@@ -319,6 +378,43 @@ export default function CustomResumeTab() {
               <Eye size={16} /> Preview
             </button>
           </div>
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            style={{ padding: '10px 16px' }}
+            onClick={() => handleCoverLetter(false)}
+            disabled={clLoading || loading || previewLoading}
+          >
+            <Mail size={16} /> {clLoading && !coverLetter ? 'Writing cover letter…' : 'Create Cover Letter for this Job'}
+          </button>
+
+          {coverLetter && (
+            <div className="form-group" style={{ margin: 0, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label className="form-label" htmlFor="coverLetterText" style={{ margin: 0 }}>
+                <Mail size={14} color="var(--c-brand)" /> Cover letter (built from your resume; edit freely)
+              </label>
+              <textarea
+                id="coverLetterText"
+                className="form-textarea"
+                rows={14}
+                value={coverLetter}
+                onChange={(e) => setCoverLetter(e.target.value)}
+                style={{ resize: 'vertical', lineHeight: '1.5', fontFamily: 'inherit' }}
+              />
+              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={handleCopyCoverLetter}>
+                  <Copy size={14} /> Copy text
+                </button>
+                <button type="button" className="btn btn-primary btn-sm" onClick={() => handleCoverLetter(true)} disabled={clLoading || !coverLetter.trim()}>
+                  <Download size={14} /> {clLoading ? 'Preparing…' : 'Download PDF'}
+                </button>
+                <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleCoverLetter(false)} disabled={clLoading}>
+                  <RotateCcw size={14} /> Write again
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column: ATS Match Analyzer & Features Overview */}
