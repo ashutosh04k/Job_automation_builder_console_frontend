@@ -26,6 +26,7 @@ import { useAuth } from '../../context/AuthContext';
 import { resumeFileName } from '../../utils/fileName';
 import { useAtsScore } from '../../hooks/useAtsScore';
 import AtsScorePanel from '../../components/AtsScorePanel';
+import AddMissingPanel from '../../components/AddMissingPanel';
 
 // Score comes from the backend (real ATS scorer). null = not scored yet.
 const scoreLabel = (score) =>
@@ -199,6 +200,20 @@ export default function JobTargetTab() {
   // Full ATS report for the target open in the PDF modal
   const modalAts = useAtsScore({ targetId: pdfModalTarget?._id || null, enabled: Boolean(pdfModalTarget?._id) });
 
+  // After "Add missing": remember the old score, re-score this target and rebuild its PDF.
+  const [scoreBefore, setScoreBefore] = useState(null); // { targetId, score }
+  const handleMissingAdded = ({ added = [] } = {}) => {
+    if (!pdfModalTarget) return;
+    setScoreBefore({ targetId: pdfModalTarget._id, score: modalAts.report?.score ?? null });
+    showNotification('success', `Added to your master resume: ${added.join('; ')}. Re-scoring…`);
+    modalAts.refresh();
+    handleOpenPdfPreview(pdfModalTarget); // the tailored PDF now includes the additions
+  };
+  const scoreDelta = scoreBefore && pdfModalTarget && scoreBefore.targetId === pdfModalTarget._id
+    && scoreBefore.score != null && modalAts.status === 'success' && modalAts.report?.score != null
+    ? { from: scoreBefore.score, to: modalAts.report.score }
+    : null;
+
   // Recompute stored ATS scores for all targets (e.g. after editing the master resume)
   const [rescoring, setRescoring] = useState(false);
   const handleRescoreAll = async () => {
@@ -322,6 +337,7 @@ export default function JobTargetTab() {
       setPdfModalUrl(null);
     }
     setPdfModalTarget(null);
+    setScoreBefore(null);
     fetchTargets(page, limit, search);
   };
 
@@ -1070,7 +1086,21 @@ export default function JobTargetTab() {
               )}
             </div>
             <div style={{ flex: '1 1 300px', maxWidth: '100%', maxHeight: 'calc(94vh - 120px)', overflowY: 'auto' }}>
-              <AtsScorePanel status={modalAts.status} report={modalAts.report} error={modalAts.error} onRetry={modalAts.refresh} compact />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {scoreDelta && (
+                  <div role="status" style={{
+                    padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 700,
+                    background: scoreDelta.to > scoreDelta.from ? 'var(--c-go-soft)' : 'var(--c-surface-alt)',
+                    color: scoreDelta.to > scoreDelta.from ? 'var(--c-go)' : 'var(--c-ink)', border: '1px solid var(--c-line)'
+                  }}>
+                    ATS score {scoreDelta.from} → {scoreDelta.to} ({scoreDelta.to - scoreDelta.from >= 0 ? '+' : ''}{scoreDelta.to - scoreDelta.from}) with your additions. The PDF on the left is updated.
+                  </div>
+                )}
+                <AtsScorePanel status={modalAts.status} report={modalAts.report} error={modalAts.error} onRetry={modalAts.refresh} compact />
+                {modalAts.status === 'success' && (
+                  <AddMissingPanel key={pdfModalTarget?._id} report={modalAts.report} onSaved={handleMissingAdded} />
+                )}
+              </div>
             </div>
             </div>
           </div>
