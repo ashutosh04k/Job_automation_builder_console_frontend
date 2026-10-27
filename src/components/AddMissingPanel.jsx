@@ -35,7 +35,7 @@ function missingTerms(report) {
 const namesTerm = (term, text) => term.toLowerCase().replace(/\.js$/, '').split(/[\s/]+/)
   .filter((w) => w.length > 2).some((w) => text.toLowerCase().includes(w.replace(/s$/, '')));
 
-const box = { border: '1px solid var(--c-line)', borderRadius: 10, padding: 12, background: 'var(--c-surface)', display: 'flex', flexDirection: 'column', gap: 10 };
+const box = { border: '1px solid var(--c-line)', borderRadius: 10, padding: 12, background: 'var(--c-surface)', display: 'flex', flexDirection: 'column', gap: 10 ,marginBottom:'40px'};
 const small = { fontSize: 12, color: 'var(--c-ink-soft)', margin: 0, lineHeight: 1.45 };
 const field = { width: '100%', boxSizing: 'border-box', padding: '7px 9px', borderRadius: 6, border: '1px solid var(--c-line-strong)', background: 'var(--c-surface)', color: 'var(--c-ink)', font: 'inherit', fontSize: 12 };
 
@@ -82,7 +82,7 @@ export default function AddMissingPanel({ report, onSaved }) {
 
   if (!open) {
     return (
-      <button type="button" className="btn btn-secondary btn-sm" onClick={() => setOpen(true)} style={{ alignSelf: 'stretch', justifyContent: 'center' }}>
+      <button type="button" className="btn btn-secondary btn-sm" onClick={() => setOpen(true)} style={{ alignSelf: 'stretch', justifyContent: 'center',marginBottom:'40px' }}>
         <PlusCircle size={14} /> Add missing skills I really have ({rows.length})
       </button>
     );
@@ -153,7 +153,7 @@ export default function AddMissingPanel({ report, onSaved }) {
         </div>
       )}
 
-      <div style={{ display: 'flex', gap: 8 }}>
+      <div style={{ display: 'flex', gap: 8, }}>
         <button type="button" className="btn btn-secondary btn-sm" onClick={() => { setOpen(false); setError(''); }} style={{ flex: 1, justifyContent: 'center' }}>
           Cancel
         </button>
