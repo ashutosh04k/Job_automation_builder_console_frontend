@@ -830,7 +830,7 @@ export default function JobTargetTab() {
                             }}>
                               Not opened yet
                             </span>
-                            {target.lastSentAt && (
+                            {/* {target.lastSentAt && (
                               <button
                                 type="button"
                                 className="btn btn-secondary btn-sm"
@@ -840,7 +840,7 @@ export default function JobTargetTab() {
                               >
                                 Mark opened
                               </button>
-                            )}
+                            )} */}
                           </div>
                         )}
                       </td>
