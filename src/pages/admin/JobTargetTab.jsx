@@ -197,6 +197,24 @@ export default function JobTargetTab() {
     }
   };
 
+  // Manually mark a target as opened
+  const handleMarkOpened = async (targetId) => {
+    try {
+      const now = new Date().toISOString();
+      const res = await authFetch(apiUrl(`/api/targets/${targetId}`), {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isOpened: true, openCount: 1, openedAt: now, lastOpenedAt: now })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.success) throw new Error(data.error || 'Failed to update open status');
+      showNotification('success', 'Email marked as opened! 🎉');
+      fetchTargets(page, limit, search);
+    } catch (err) {
+      showNotification('error', err.message);
+    }
+  };
+
   // Full ATS report for the target open in the PDF modal
   const modalAts = useAtsScore({ targetId: pdfModalTarget?._id || null, enabled: Boolean(pdfModalTarget?._id) });
 
@@ -798,7 +816,7 @@ export default function JobTargetTab() {
                             )}
                           </div>
                         ) : (
-                          <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             <span style={{
                               display: 'inline-flex',
                               alignItems: 'center',
@@ -812,6 +830,17 @@ export default function JobTargetTab() {
                             }}>
                               Not opened yet
                             </span>
+                            {target.lastSentAt && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => handleMarkOpened(target._id)}
+                                title="Manually mark this sent email as opened"
+                                style={{ padding: '2px 6px', fontSize: '10px', height: 'auto', lineHeight: '1.2' }}
+                              >
+                                Mark opened
+                              </button>
+                            )}
                           </div>
                         )}
                       </td>
