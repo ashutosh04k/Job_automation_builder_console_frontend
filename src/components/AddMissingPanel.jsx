@@ -16,20 +16,29 @@ import { apiUrl, authFetch } from '../config/api';
 const BULLET_MIN = 15;
 const BULLET_MAX = 220;
 
-/** One row per missing term ("Webpack / Vite" becomes two rows). */
+/**
+ * One row per keyword, biggest score gain first. Uses the server's
+ * `keywords.opportunities` (points per term); older servers: plain missing lists.
+ */
 function missingTerms(report) {
   const k = report?.keywords || {};
+  if (Array.isArray(k.opportunities)) {
+    return k.opportunities.map((o) => ({ term: o.term, kind: o.kind, gain: Math.max(o.asBullet || 0, o.asSkill || 0) }));
+  }
   const rows = [];
   const seen = new Set();
   const push = (term, kind) => {
     const t = String(term || '').trim();
-    if (t && !seen.has(t.toLowerCase())) { seen.add(t.toLowerCase()); rows.push({ term: t, kind }); }
+    if (t && !seen.has(t.toLowerCase())) { seen.add(t.toLowerCase()); rows.push({ term: t, kind, gain: null }); }
   };
   (k.required?.missing || []).forEach((g) => g.split(' / ').forEach((t) => push(t, 'Required')));
   (k.preferred?.missing || []).forEach((g) => g.split(' / ').forEach((t) => push(t, 'Nice to have')));
   (k.terms?.missing || []).forEach((t) => push(t, 'JD term'));
   return rows;
 }
+
+const LISTED_ONLY = 'Skills list only';
+const gainText = (gain) => (gain == null ? '' : gain >= 1 ? ` · +${Math.round(gain)} pts` : ' · <1 pt');
 
 // Rough check while typing (the server does the real one): does the sentence name the term?
 const namesTerm = (term, text) => term.toLowerCase().replace(/\.js$/, '').split(/[\s/]+/)
@@ -50,7 +59,7 @@ export default function AddMissingPanel({ report, onSaved }) {
   if (!report || report.score == null || rows.length === 0) return null;
 
   const get = (term, kind) => state[term] || {
-    checked: false, mode: kind === 'JD term' ? 'bullet' : 'skill', target: targets[0]?.key || '', bullet: ''
+    checked: false, mode: kind === 'JD term' || kind === LISTED_ONLY ? 'bullet' : 'skill', target: targets[0]?.key || '', bullet: ''
   };
   const set = (term, kind, patch) => setState((s) => ({ ...s, [term]: { ...get(term, kind), ...patch } }));
   const chosen = rows.filter((r) => get(r.term, r.kind).checked);
@@ -91,12 +100,12 @@ export default function AddMissingPanel({ report, onSaved }) {
   return (
     <section style={box} aria-label="Add missing skills">
       <p style={small}>
-        Tick only what you have really used. It is added <strong>visibly</strong> to your master resume, so it counts for every job.
-        A bullet in your own words counts fully; a Skills-list entry counts partly.
+        Sorted by how many points each one adds to this job&apos;s score. Tick only what you have really used. It is added{' '}
+        <strong>visibly</strong> to your master resume, so it counts for every job. A bullet in your own words counts fully; a Skills-list entry counts partly.
       </p>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 360, overflowY: 'auto' }}>
-        {rows.map(({ term, kind }, i) => {
+        {rows.map(({ term, kind, gain }, i) => {
           const r = get(term, kind);
           const len = r.bullet.trim().length;
           const ok = len >= BULLET_MIN && namesTerm(term, r.bullet);
@@ -106,13 +115,13 @@ export default function AddMissingPanel({ report, onSaved }) {
               <label htmlFor={id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: 'var(--c-ink)', cursor: 'pointer' }}>
                 <input id={id} type="checkbox" checked={r.checked} onChange={(e) => set(term, kind, { checked: e.target.checked })} />
                 {term}
-                <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: 'var(--c-ink-soft)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{kind}</span>
+                <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, color: 'var(--c-ink-soft)', textTransform: 'uppercase', letterSpacing: '0.03em' }}>{kind}{gainText(gain)}</span>
               </label>
 
               {r.checked && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 24 }}>
                   <div style={{ display: 'flex', gap: 14, fontSize: 12, color: 'var(--c-ink)' }} role="radiogroup" aria-label={`How to add ${term}`}>
-                    {[['skill', 'Skills list'], ['bullet', 'Bullet (counts more)']].map(([value, label]) => (
+                    {(kind === LISTED_ONLY ? [['bullet', 'Bullet (already in your Skills list)']] : [['skill', 'Skills list'], ['bullet', 'Bullet (counts more)']]).map(([value, label]) => (
                       <label key={value} style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
                         <input type="radio" name={`${id}-mode`} checked={r.mode === value} onChange={() => set(term, kind, { mode: value })} />
                         {label}
