@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { PlusCircle, Loader2, AlertCircle } from 'lucide-react';
+import { PlusCircle, Loader2, AlertCircle, Sparkles } from 'lucide-react';
 import { apiUrl, authFetch } from '../config/api';
 
 /**
@@ -54,6 +54,7 @@ export default function AddMissingPanel({ report, onSaved }) {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState({}); // term -> { checked, mode, target, bullet }
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState({});
   const [error, setError] = useState('');
 
   if (!report || report.score == null || rows.length === 0) return null;
@@ -63,6 +64,33 @@ export default function AddMissingPanel({ report, onSaved }) {
   };
   const set = (term, kind, patch) => setState((s) => ({ ...s, [term]: { ...get(term, kind), ...patch } }));
   const chosen = rows.filter((r) => get(r.term, r.kind).checked);
+
+  const handleGenerateBullet = async (term, kind) => {
+    setGenerating((g) => ({ ...g, [term]: true }));
+    setError('');
+    try {
+      const current = get(term, kind);
+      const res = await authFetch(apiUrl('/api/resume/generate-bullet'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          term,
+          target: current.target,
+          jobDescription: report?.jobDescription || report?.jd || ''
+        })
+      });
+      const body = await res.json().catch(() => ({}));
+      if (res.ok && body.success && body.bullet) {
+        set(term, kind, { bullet: body.bullet });
+      } else {
+        setError(body.error || 'Failed to auto-generate bullet');
+      }
+    } catch (err) {
+      setError(err.message || 'Error generating bullet');
+    } finally {
+      setGenerating((g) => ({ ...g, [term]: false }));
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -133,6 +161,16 @@ export default function AddMissingPanel({ report, onSaved }) {
                       <select aria-label={`Where you used ${term}`} value={r.target} onChange={(e) => set(term, kind, { target: e.target.value })} style={field}>
                         {targets.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
                       </select>
+                      <button
+                        type="button"
+                        className="btn btn-secondary btn-sm"
+                        disabled={generating[term]}
+                        onClick={() => handleGenerateBullet(term, kind)}
+                        style={{ alignSelf: 'flex-start', fontSize: 11, padding: '4px 8px', gap: 4 }}
+                      >
+                        {generating[term] ? <Loader2 size={12} className="spin-animation" /> : <Sparkles size={12} />}
+                        {generating[term] ? 'Generating bullet with Groq…' : '✨ Auto-generate bullet with Groq'}
+                      </button>
                       <textarea
                         aria-label={`Bullet showing ${term}`}
                         rows={2}
